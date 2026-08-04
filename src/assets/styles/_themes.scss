@@ -1,0 +1,60 @@
+// SCSS Theme Definitions for Xiangqi
+
+body.theme-wood {
+  --bg-gradient: linear-gradient(135deg, #1e1b18 0%, #2b231d 50%, #151210 100%);
+  --panel-bg: rgba(43, 35, 29, 0.75);
+  --panel-border: rgba(212, 163, 115, 0.25);
+  --accent-gold: #d4a373;
+  --accent-gold-glow: rgba(212, 163, 115, 0.4);
+  --text-main: #f3e9dc;
+  --text-muted: #a89f91;
+
+  --board-bg-grad-1: #e8c39e;
+  --board-bg-grad-2: #d4a373;
+  --board-bg-grad-3: #bc8a5f;
+  --board-line-color: #3d2314;
+  --board-frame-color: #5c3d2e;
+  --board-river-text: #5c2c16;
+}
+
+body.theme-ink {
+  --bg-gradient: linear-gradient(135deg, #141619 0%, #202428 50%, #0e1012 100%);
+  --panel-bg: rgba(26, 30, 34, 0.85);
+  --panel-border: rgba(200, 205, 215, 0.2);
+  --accent-gold: #c5a059;
+  --accent-gold-glow: rgba(197, 160, 89, 0.3);
+  --text-main: #f3f4f6;
+  --text-muted: #9ca3af;
+
+  --board-bg-grad-1: #2b3036;
+  --board-bg-grad-2: #1e2226;
+  --board-bg-grad-3: #14171a;
+  --board-line-color: #717d8a;
+  --board-frame-color: #a0acba;
+  --board-river-text: rgba(200, 210, 220, 0.75);
+
+  .board-wrapper {
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9), 0 0 35px rgba(197, 160, 89, 0.25);
+  }
+}
+
+body.theme-dark {
+  --bg-gradient: linear-gradient(135deg, #090d16 0%, #131b2e 50%, #050811 100%);
+  --panel-bg: rgba(15, 23, 42, 0.85);
+  --panel-border: rgba(99, 102, 241, 0.35);
+  --accent-gold: #818cf8;
+  --accent-gold-glow: rgba(129, 140, 248, 0.4);
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+
+  --board-bg-grad-1: #1e1b4b;
+  --board-bg-grad-2: #0f172a;
+  --board-bg-grad-3: #020617;
+  --board-line-color: #6366f1;
+  --board-frame-color: #818cf8;
+  --board-river-text: rgba(165, 180, 252, 0.75);
+
+  .board-wrapper {
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.95), 0 0 40px rgba(129, 140, 248, 0.3);
+  }
+}

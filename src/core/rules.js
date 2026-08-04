@@ -1,8 +1,12 @@
 /**
  * Xiangqi Move Validation & Notation Logic
  */
+import {
+  RED, BLACK, KING, ADVISOR, ELEPHANT, HORSE, CHARIOT, CANNON, PAWN,
+  BOARD_ROWS, BOARD_COLS, PIECE_NAMES
+} from './constants.js';
 
-class Rules {
+export class Rules {
   static getSide(piece) {
     if (!piece) return null;
     return piece[0];
@@ -36,9 +40,6 @@ class Rules {
     return null;
   }
 
-  /**
-   * Check if Red King and Black King are facing each other in the same column with no pieces in between
-   */
   static isFlyingGeneral(board) {
     const redKing = Rules.findKing(board, RED);
     const blackKing = Rules.findKing(board, BLACK);
@@ -54,12 +55,9 @@ class Rules {
       if (board[r][c] !== null) return false;
     }
 
-    return true; // Facing each other directly!
+    return true;
   }
 
-  /**
-   * Generates pseudo-legal moves without check validation
-   */
   static getPseudoMoves(board, r, c) {
     const piece = board[r][c];
     if (!piece) return [];
@@ -72,12 +70,12 @@ class Rules {
       if (!Rules.isValidPos(toR, toC)) return false;
       const targetPiece = board[toR][toC];
       if (targetPiece) {
-        if (Rules.getSide(targetPiece) === side) return false; // Own piece
+        if (Rules.getSide(targetPiece) === side) return false;
         moves.push({ fromR: r, fromC: c, toR, toC, captured: targetPiece });
-        return false; // Stop sliding if blocked by enemy
+        return false;
       }
       moves.push({ fromR: r, fromC: c, toR, toC, captured: null });
-      return true; // Continue sliding
+      return true;
     };
 
     switch (type) {
@@ -109,11 +107,9 @@ class Rules {
           const nr = r + dr, nc = c + dc;
           if (!Rules.isValidPos(nr, nc)) continue;
 
-          // Cannot cross river
           if (side === RED && nr < 5) continue;
           if (side === BLACK && nr > 4) continue;
 
-          // Eye of elephant block
           const eyeR = r + dr / 2;
           const eyeC = c + dc / 2;
           if (board[eyeR][eyeC] === null) {
@@ -171,14 +167,14 @@ class Rules {
               if (target === null) {
                 moves.push({ fromR: r, fromC: c, toR: nr, toC: nc, captured: null });
               } else {
-                screenFound = true; // Screen piece for cannon jump
+                screenFound = true;
               }
             } else {
               if (target !== null) {
                 if (Rules.getSide(target) !== side) {
                   moves.push({ fromR: r, fromC: c, toR: nr, toC: nc, captured: target });
                 }
-                break; // Screen used, target hit (or blocked by own piece)
+                break;
               }
             }
             nr += dr;
@@ -190,10 +186,8 @@ class Rules {
 
       case PAWN: {
         const forwardDir = side === RED ? -1 : 1;
-        // Forward move
         addMove(r + forwardDir, c);
 
-        // Sideways moves if crossed river
         const crossedRiver = side === RED ? r <= 4 : r >= 5;
         if (crossedRiver) {
           addMove(r, c - 1);
@@ -206,16 +200,10 @@ class Rules {
     return moves;
   }
 
-  /**
-   * Clone board state
-   */
   static cloneBoard(board) {
     return board.map(row => [...row]);
   }
 
-  /**
-   * Apply move on board clone
-   */
   static makeMove(board, move) {
     const newBoard = Rules.cloneBoard(board);
     newBoard[move.toR][move.toC] = newBoard[move.fromR][move.fromC];
@@ -223,18 +211,14 @@ class Rules {
     return newBoard;
   }
 
-  /**
-   * Check if specified side is in check
-   */
   static isKingInCheck(board, side) {
     if (Rules.isFlyingGeneral(board)) return true;
 
     const kingPos = Rules.findKing(board, side);
-    if (!kingPos) return true; // King missing means captured/in check
+    if (!kingPos) return true;
 
     const enemySide = side === RED ? BLACK : RED;
 
-    // Check all enemy pseudo moves to see if any can reach the king
     for (let r = 0; r < BOARD_ROWS; r++) {
       for (let c = 0; c < BOARD_COLS; c++) {
         const piece = board[r][c];
@@ -250,9 +234,6 @@ class Rules {
     return false;
   }
 
-  /**
-   * Get all strictly legal moves for piece at (r, c)
-   */
   static getLegalMoves(board, r, c) {
     const piece = board[r][c];
     if (!piece) return [];
@@ -265,9 +246,6 @@ class Rules {
     });
   }
 
-  /**
-   * Get all strictly legal moves for a given side
-   */
   static getAllLegalMoves(board, side) {
     const allMoves = [];
     for (let r = 0; r < BOARD_ROWS; r++) {
@@ -294,9 +272,6 @@ class Rules {
     return !inCheck && legalMoves.length === 0;
   }
 
-  /**
-   * Convert move to Xiangqi Chinese Notation (e.g. 炮二平五, 马8进7)
-   */
   static generateNotation(board, move) {
     const piece = board[move.fromR][move.fromC];
     if (!piece) return '';
@@ -315,7 +290,6 @@ class Rules {
 
     let prefix = pName;
 
-    // Check for column duplicate pieces (e.g. 前炮 / 后炮)
     const sameCols = [];
     for (let r = 0; r < BOARD_ROWS; r++) {
       if (board[r][move.fromC] === piece) {
@@ -324,7 +298,7 @@ class Rules {
     }
 
     if (sameCols.length > 1) {
-      sameCols.sort((a, b) => a - b); // Row 0 (top) to Row 9 (bottom)
+      sameCols.sort((a, b) => a - b);
       const isFront = (side === RED) ? move.fromR === sameCols[0] : move.fromR === sameCols[sameCols.length - 1];
       prefix = (isFront ? '前' : '后') + pName;
     }
@@ -346,7 +320,7 @@ class Rules {
         dirStr = '平';
         targetStr = toColChar;
       }
-    } else { // BLACK
+    } else {
       if (rowDiff > 0) {
         dirStr = '进';
         targetStr = isStraightPiece ? blackCols[Math.abs(rowDiff) - 1] : toColChar;

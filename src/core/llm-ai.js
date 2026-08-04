@@ -1,9 +1,11 @@
 /**
  * OpenAI / GPT Integration for Xiangqi
- * Supports GPT-4o, GPT-4o-mini, GPT-3.5-Turbo, DeepSeek & OpenAI-compatible proxy Base URLs
  */
+import { GAME_CONFIG } from './config.js';
+import { RED, PIECE_NAMES, gridToFen } from './constants.js';
+import { Rules } from './rules.js';
 
-class LLMXiangqiAI {
+export class LLMXiangqiAI {
   constructor() {
     this.apiKey = this.loadApiKey();
     this.baseUrl = this.loadBaseUrl();
@@ -17,6 +19,9 @@ class LLMXiangqiAI {
   }
 
   loadApiKey() {
+    const envKey = import.meta.env.VITE_GPT_API_KEY || import.meta.env.VITE_OPENAI_API_KEY || import.meta.env.OPENAI_API_KEY;
+    if (envKey && envKey.trim()) return envKey.trim();
+
     try {
       const localKey = localStorage.getItem('xiangqi_llm_api_key');
       if (localKey && localKey.trim()) {
@@ -24,13 +29,13 @@ class LLMXiangqiAI {
       }
     } catch (e) {}
 
-    if (typeof GAME_CONFIG !== 'undefined') {
-      return (GAME_CONFIG.API_KEY || GAME_CONFIG.GEMINI_API_KEY || '').trim();
-    }
-    return '';
+    return (GAME_CONFIG.API_KEY || '').trim();
   }
 
   loadBaseUrl() {
+    const envUrl = import.meta.env.VITE_GPT_BASE_URL || import.meta.env.VITE_OPENAI_BASE_URL;
+    if (envUrl && envUrl.trim()) return envUrl.trim();
+
     try {
       const localUrl = localStorage.getItem('xiangqi_llm_base_url');
       if (localUrl && localUrl.trim()) {
@@ -38,13 +43,13 @@ class LLMXiangqiAI {
       }
     } catch (e) {}
 
-    if (typeof GAME_CONFIG !== 'undefined') {
-      return (GAME_CONFIG.BASE_URL || GAME_CONFIG.GEMINI_BASE_URL || '').trim();
-    }
-    return 'https://api.openai.com/v1';
+    return (GAME_CONFIG.BASE_URL || 'https://api.openai.com/v1').trim();
   }
 
   loadModelName() {
+    const envModel = import.meta.env.VITE_GPT_MODEL || import.meta.env.VITE_OPENAI_MODEL;
+    if (envModel && envModel.trim()) return envModel.trim();
+
     try {
       const localModel = localStorage.getItem('xiangqi_llm_model');
       if (localModel && localModel.trim()) {
@@ -52,10 +57,7 @@ class LLMXiangqiAI {
       }
     } catch (e) {}
 
-    if (typeof GAME_CONFIG !== 'undefined') {
-      return (GAME_CONFIG.MODEL || GAME_CONFIG.GEMINI_MODEL || 'gpt-5.5').trim();
-    }
-    return 'gpt-5.5';
+    return (GAME_CONFIG.MODEL || 'gpt-5.5').trim();
   }
 
   hasApiKey() {
@@ -63,21 +65,16 @@ class LLMXiangqiAI {
     return this.apiKey.length > 0;
   }
 
-  /**
-   * Send prompt to GPT API and receive chosen move index + tactical commentary
-   */
   async getMoveFromGPT(grid, turn, legalMoves, moveHistoryNotations = []) {
     if (!this.hasApiKey()) {
-      throw new Error('未设置 API Key，请在 js/config.js 中配置 API_KEY。');
+      throw new Error('未设置 API Key，请在设置中配置 API_KEY。');
     }
 
     const currentFen = gridToFen(grid, turn);
     const sideName = turn === RED ? '红方' : '黑方';
 
-    // Format legal moves for GPT
     const formattedMoves = legalMoves.map((m, idx) => {
       const piece = grid[m.fromR][m.fromC];
-      const name = PIECE_NAMES[piece] || '棋子';
       const notation = Rules.generateNotation(grid, m);
       return `${idx}: ${notation} (从[${m.fromR},${m.fromC}]到[${m.toR},${m.toC}])`;
     }).join('\n');
@@ -93,7 +90,6 @@ ${formattedMoves}
 {"moveIndex": 索引数字, "commentary": "20字以内精辟战略战术点评"}
 请直接输出 JSON，不要添加 Markdown 或多余字符。`;
 
-    // Determine Candidate Endpoints for Proxy Platforms
     let cleanBase = (this.baseUrl || 'https://api.openai.com/v1').replace(/\/+$/, '');
     let rawEndpoints = [];
 
@@ -106,10 +102,9 @@ ${formattedMoves}
       rawEndpoints.push(`${cleanBase}/chat/completions`);
     }
 
-    const useCorsProxy = (typeof GAME_CONFIG !== 'undefined' && GAME_CONFIG.USE_CORS_PROXY !== false);
-    const customProxyPrefix = (typeof GAME_CONFIG !== 'undefined' && (GAME_CONFIG.CORS_PROXY_PREFIX || '')).trim();
+    const useCorsProxy = GAME_CONFIG.USE_CORS_PROXY !== false;
+    const customProxyPrefix = (GAME_CONFIG.CORS_PROXY_PREFIX || '').trim();
 
-    // Prepare list of target URLs (CORS proxies to bypass browser preflight, plus direct request)
     let candidateUrls = [];
     rawEndpoints.forEach(ep => {
       if (useCorsProxy && !ep.includes('localhost') && !ep.includes('127.0.0.1')) {
@@ -120,14 +115,12 @@ ${formattedMoves}
             candidateUrls.push(customProxyPrefix + (customProxyPrefix.includes('?') ? encodeURIComponent(ep) : ep));
           }
         }
-        // Public CORS proxy candidates to prevent single-proxy 429 rate limit
         candidateUrls.push(`https://corsproxy.io/?${encodeURIComponent(ep)}`);
         candidateUrls.push(`https://thingproxy.freeboard.io/fetch/${ep}`);
       }
-      candidateUrls.push(ep); // Direct request
+      candidateUrls.push(ep);
     });
 
-    // Remove duplicates while keeping order
     candidateUrls = Array.from(new Set(candidateUrls));
 
     let response = null;
@@ -179,7 +172,6 @@ ${formattedMoves}
     const data = await response.json();
     const rawText = data.choices?.[0]?.message?.content || '';
 
-    // Clean markdown formatting if present
     const cleanedText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
 
     try {
@@ -195,13 +187,9 @@ ${formattedMoves}
       console.warn('GPT JSON parse warning, raw output:', rawText);
     }
 
-    // Fallback: Pick first move if parsing failed
     return {
       move: legalMoves[0],
       commentary: 'GPT 已下子。'
     };
   }
 }
-
-// Alias for backward compatibility
-const GeminiXiangqiAI = LLMXiangqiAI;

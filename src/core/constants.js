@@ -2,26 +2,26 @@
  * Xiangqi (Chinese Chess) - Constants & PST Evaluations
  */
 
-const RED = 'r';
-const BLACK = 'b';
+export const RED = 'r';
+export const BLACK = 'b';
 
 // Piece Types
-const KING = 'k';     // 帥 / 將
-const ADVISOR = 'a';  // 仕 / 士
-const ELEPHANT = 'e'; // 相 / 象
-const HORSE = 'h';    // 馬 / 马
-const CHARIOT = 'c';  // 車 / 车
-const CANNON = 'p';   // 炮 / 砲
-const PAWN = 's';     // 兵 / 卒
+export const KING = 'k';     // 帥 / 將
+export const ADVISOR = 'a';  // 仕 / 士
+export const ELEPHANT = 'e'; // 相 / 象
+export const HORSE = 'h';    // 馬 / 马
+export const CHARIOT = 'c';  // 車 / 车
+export const CANNON = 'p';   // 炮 / 砲
+export const PAWN = 's';     // 兵 / 卒
 
 // Chinese Names for Display
-const PIECE_NAMES = {
+export const PIECE_NAMES = {
   'rk': '帥', 'ra': '仕', 're': '相', 'rh': '馬', 'rc': '車', 'rp': '炮', 'rs': '兵',
   'bk': '將', 'ba': '士', 'be': '象', 'bh': '馬', 'bc': '車', 'bp': '砲', 'bs': '卒'
 };
 
 // Base Piece Values for AI
-const PIECE_VALUES = {
+export const PIECE_VALUES = {
   [KING]: 10000,
   [CHARIOT]: 900,
   [CANNON]: 450,
@@ -32,12 +32,11 @@ const PIECE_VALUES = {
 };
 
 // Board Dimensions
-const BOARD_COLS = 9;
-const BOARD_ROWS = 10;
+export const BOARD_COLS = 9;
+export const BOARD_ROWS = 10;
 
 // Initial 9x10 Board Setup
-// Array indexed as board[row][col], null for empty
-const INITIAL_BOARD = [
+export const INITIAL_BOARD = [
   ['bc', 'bh', 'be', 'ba', 'bk', 'ba', 'be', 'bh', 'bc'], // Row 0 (Black back rank)
   [null, null, null, null, null, null, null, null, null], // Row 1
   [null, 'bp', null, null, null, null, null, 'bp', null], // Row 2
@@ -50,9 +49,8 @@ const INITIAL_BOARD = [
   ['rc', 'rh', 're', 'ra', 'rk', 'ra', 're', 'rh', 'rc']  // Row 9 (Red back rank)
 ];
 
-// Piece-Square Tables (PST) for AI Evaluation (from Red's perspective, row 0 top to row 9 bottom)
-// For Black, the table is vertically mirrored (row 9 - r)
-const PST_PAWN = [
+// Piece-Square Tables (PST) for AI Evaluation (from Red's perspective)
+export const PST_PAWN = [
   [ 0,  3,  6,  9, 12,  9,  6,  3,  0],
   [18, 36, 54, 72, 72, 54, 36, 18, 18],
   [14, 26, 42, 60, 60, 42, 26, 14, 14],
@@ -65,7 +63,7 @@ const PST_PAWN = [
   [ 0,  0,  0,  0,  0,  0,  0,  0,  0]
 ];
 
-const PST_HORSE = [
+export const PST_HORSE = [
   [ 4,  8, 16, 12,  4, 12, 16,  8,  4],
   [ 4, 10, 28, 16,  8, 16, 28, 10,  4],
   [12, 14, 16, 20, 18, 20, 16, 14, 12],
@@ -78,7 +76,7 @@ const PST_HORSE = [
   [ 0, -4,  0,  0,  0,  0,  0, -4,  0]
 ];
 
-const PST_CHARIOT = [
+export const PST_CHARIOT = [
   [14, 14, 12, 18, 16, 18, 12, 14, 14],
   [16, 20, 18, 24, 26, 24, 18, 20, 16],
   [12, 18, 16, 20, 18, 20, 16, 18, 12],
@@ -91,7 +89,7 @@ const PST_CHARIOT = [
   [-2, 10,  6, 14, 12, 14,  6, 10, -2]
 ];
 
-const PST_CANNON = [
+export const PST_CANNON = [
   [ 6,  4,  0, -10, -12, -10,  0,  4,  6],
   [ 2,  2,  0,  -4,  -4,  -4,  0,  2,  2],
   [ 4,  0,  8,   4,  10,   4,  8,  0,  4],
@@ -105,20 +103,17 @@ const PST_CANNON = [
 ];
 
 // FEN Mapping Dictionary
-const FEN_CHAR_TO_PIECE = {
+export const FEN_CHAR_TO_PIECE = {
   'K': 'rk', 'A': 'ra', 'B': 're', 'E': 're', 'N': 'rh', 'H': 'rh', 'R': 'rc', 'C': 'rp', 'P': 'rs',
   'k': 'bk', 'a': 'ba', 'b': 'be', 'e': 'be', 'n': 'bh', 'h': 'bh', 'r': 'bc', 'c': 'bp', 'p': 'bs'
 };
 
-const PIECE_TO_FEN_CHAR = {
+export const PIECE_TO_FEN_CHAR = {
   'rk': 'K', 'ra': 'A', 're': 'B', 'rh': 'N', 'rc': 'R', 'rp': 'C', 'rs': 'P',
   'bk': 'k', 'ba': 'a', 'be': 'b', 'bh': 'n', 'bc': 'r', 'bp': 'c', 'bs': 'p'
 };
 
-/**
- * Parse FEN string into 9x10 grid and turn ('r' or 'b')
- */
-function fenToGrid(fenStr) {
+export function fenToGrid(fenStr) {
   const parts = fenStr.trim().split(/\s+/);
   const rows = parts[0].split('/');
   const grid = Array.from({ length: 10 }, () => Array(9).fill(null));
@@ -144,10 +139,7 @@ function fenToGrid(fenStr) {
   return { grid, turn };
 }
 
-/**
- * Generate FEN string from 9x10 grid and turn
- */
-function gridToFen(grid, turn = RED) {
+export function gridToFen(grid, turn = RED) {
   let fenRows = [];
   for (let r = 0; r < 10; r++) {
     let rowStr = '';
@@ -172,9 +164,8 @@ function gridToFen(grid, turn = RED) {
 }
 
 // Available UI Themes
-const GAME_THEMES = {
+export const GAME_THEMES = {
   wood: { name: '🪵 经典木纹', class: 'theme-wood' },
   ink: { name: '🖌️ 典雅水墨', class: 'theme-ink' },
   dark: { name: '🌌 赛博暗黑', class: 'theme-dark' }
 };
-

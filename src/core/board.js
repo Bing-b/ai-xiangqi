@@ -1,8 +1,10 @@
 /**
  * Xiangqi Board Manager
  */
+import { RED, BLACK, INITIAL_BOARD, fenToGrid } from './constants.js';
+import { Rules } from './rules.js';
 
-class XiangqiBoard {
+export class XiangqiBoard {
   constructor() {
     this.grid = this.getInitialGrid();
     this.turn = RED;
@@ -46,7 +48,6 @@ class XiangqiBoard {
     const piece = this.grid[move.fromR][move.fromC];
     const captured = this.grid[move.toR][move.toC];
 
-    // Apply move
     this.grid[move.toR][move.toC] = piece;
     this.grid[move.fromR][move.fromC] = null;
 
@@ -67,8 +68,6 @@ class XiangqiBoard {
     };
 
     this.moveHistory.push(moveRecord);
-
-    // Switch turn
     this.turn = this.turn === RED ? BLACK : RED;
 
     return moveRecord;

@@ -2,7 +2,7 @@
  * Xiangqi Endgame Challenge Levels Library & Level Manager
  */
 
-const ENDGAME_LEVELS = [
+export const ENDGAME_LEVELS = [
   {
     id: 'level_1',
     name: '第一关：双马饮泉',
@@ -50,7 +50,7 @@ const ENDGAME_LEVELS = [
   }
 ];
 
-class EndgameManager {
+export class EndgameManager {
   constructor() {
     this.currentLevelIndex = 0;
     this.completedLevels = this.loadCompletedLevels();

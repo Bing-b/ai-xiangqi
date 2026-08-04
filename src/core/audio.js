@@ -1,7 +1,7 @@
 /**
  * Xiangqi Audio Synthesizer using Web Audio API
  */
-class SoundEffects {
+export class SoundEffects {
   constructor() {
     this.ctx = null;
     this.enabled = true;
@@ -51,10 +51,8 @@ class SoundEffects {
     this.init();
     if (!this.ctx) return;
 
-    // Wooden thud / piece placement sound
     const now = this.ctx.currentTime;
     
-    // Primary thump
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     osc.type = 'triangle';
@@ -67,7 +65,6 @@ class SoundEffects {
     osc.connect(gain);
     gain.connect(this.ctx.destination);
 
-    // High tap click
     const osc2 = this.ctx.createOscillator();
     const gain2 = this.ctx.createGain();
     osc2.type = 'sine';
@@ -93,7 +90,6 @@ class SoundEffects {
 
     const now = this.ctx.currentTime;
 
-    // Heavy wooden strike
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     osc.type = 'square';
@@ -106,7 +102,6 @@ class SoundEffects {
     osc.connect(gain);
     gain.connect(this.ctx.destination);
 
-    // Crack noise
     const osc2 = this.ctx.createOscillator();
     const gain2 = this.ctx.createGain();
     osc2.type = 'sawtooth';
@@ -132,13 +127,12 @@ class SoundEffects {
 
     const now = this.ctx.currentTime;
     
-    // Urgent double warning chime
     [0, 0.12].forEach((delay, i) => {
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
 
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(i === 0 ? 587.33 : 880, now + delay); // D5 then A5
+      osc.frequency.setValueAtTime(i === 0 ? 587.33 : 880, now + delay);
       gain.gain.setValueAtTime(0.3, now + delay);
       gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.25);
 
@@ -156,7 +150,7 @@ class SoundEffects {
     if (!this.ctx) return;
 
     const now = this.ctx.currentTime;
-    const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+    const notes = [523.25, 659.25, 783.99, 1046.50];
     
     notes.forEach((freq, index) => {
       const osc = this.ctx.createOscillator();
@@ -177,4 +171,4 @@ class SoundEffects {
   }
 }
 
-const sounds = new SoundEffects();
+export const sounds = new SoundEffects();

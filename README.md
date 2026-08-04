@@ -1,11 +1,13 @@
-# 中国象棋 - Xiangqi (Vibecoding Edition)
+# 中国象棋 - Xiangqi (Vue 3 + Vite + Sass Edition)
 
-![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=flat&logo=html5&logoColor=white)
-![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=flat&logo=css3&logoColor=white)
+![Vue 3](https://img.shields.io/badge/Vue-3.5-4FC08D?style=flat&logo=vuedotjs&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-6.0-646CFF?style=flat&logo=vite&logoColor=white)
+![Sass](https://img.shields.io/badge/Sass-1.83-CC6699?style=flat&logo=sass&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-F7DF1E?style=flat&logo=javascript&logoColor=black)
+![pnpm](https://img.shields.io/badge/pnpm-8.15+-F69220?style=flat&logo=pnpm&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 
-基于 **HTML5 + ES6 JavaScript + Vanilla CSS** 构建的现代化网页端中国象棋游戏。集成了经典 PvP 双人同屏对决、本地 Minimax 剪枝算法 AI、经典残局闯关，以及支持结合大语言模型的 **GPT 智能对弈与实时棋局解说**。
+基于 **Vue 3 + Vite + Sass (SCSS)** 重构的工程化中国象棋 Web 应用。保持了 100% 原汁原味的视觉美学、三大主题皮肤与动画微交互，集成了经典 PvP 双人同屏对战、本地 Minimax 剪枝算法 AI、经典残局闯关，以及支持结合大语言模型的 **GPT 智能对弈与实时棋局解说**。
 
 ---
 
@@ -47,71 +49,65 @@
 
 ---
 
-## 📂 项目文件结构
+## 📂 项目架构说明
 
 ```
 ai-xiangqi/
-├── index.html         # 网页主入口及 UI 节点结构
-├── style.css          # 全局样式表（包含三大主题皮肤、卡片布局与响应式）
-├── js/
-│   ├── config.js      # GPT API 密钥、模型名称与 Base URL 配置
-│   ├── constants.js   # 棋盘常量、FEN解析器与棋子基础价值表
-│   ├── rules.js       # 中国象棋核心规则引擎（合法走法、长将/将军检测）
-│   ├── board.js       # 棋盘 DOM 绘制与落子/吃子交互渲染
-│   ├── ai.js          # 本地 Minimax 极大极小搜索与 Alpha-Beta 剪枝算法
-│   ├── llm-ai.js      # GPT 大模型 API 通信、着法解析与实时棋评生成
-│   ├── endgame.js     # 经典残局关卡配置与通关判定
-│   ├── audio.js       # Web Audio API 音效合成引擎
-│   ├── ui.js          # 界面交互绑定、弹窗、计时器与评估条更新
-│   └── game.js        # 游戏主循环控制器与状态管理
-└── README.md          # 项目说明文档
+├── index.html                   # Vite 入口 HTML
+├── package.json                 # pnpm 依赖配置
+├── vite.config.js               # Vite 配置文件
+├── src/
+│   ├── main.js                  # Vue 3 应用挂载入口
+│   ├── App.vue                  # 根组件
+│   ├── assets/
+│   │   └── styles/
+│   │       ├── main.scss        # 全局基础样式
+│   │       ├── _themes.scss     # 木纹、水墨、赛博暗黑皮肤定义
+│   │       └── _board.scss      # SVG 棋盘、棋子与吃子动画样式
+│   ├── core/                    # 纯 JavaScript 游戏核心引擎
+│   │   ├── config.js            # GPT API 参数配置
+│   │   ├── constants.js         # 棋盘常量与 FEN 解析器
+│   │   ├── rules.js             # 中国象棋规则引擎
+│   │   ├── ai.js                # 本地 Minimax + Alpha-Beta AI
+│   │   ├── llm-ai.js            # GPT 大模型对弈接口
+│   │   ├── endgame.js           # 残局闯关关卡数据
+│   │   └── audio.js             # Web Audio 音效引擎
+│   ├── composables/
+│   │   └── useXiangqiGame.js    # 象棋核心全响应式 Hook
+│   └── components/
+│       ├── GameHeader.vue       # 顶栏标题组件
+│       ├── GameBoard.vue        # 动态 SVG 棋盘与棋子渲染
+│       ├── GameControlPanel.vue # 左侧设置面板
+│       ├── GameStatusPanel.vue  # 右侧计时、胜率条、吃子统计
+│       ├── GptCommentaryCard.vue # GPT 实时棋评卡片
+│       ├── MoveHistoryCard.vue  # 历史着法记录列表
+│       ├── FenModal.vue         # FEN / PGN 工具弹窗
+│       ├── HelpModal.vue        # 玩法指南弹窗
+│       └── ApiModal.vue         # GPT API 安全设置弹窗
 ```
 
 ---
 
 ## 🚀 快速开始
 
-由于本项目采用**原生纯前端**设计（Zero Build Required），无需安装任何 Node.js 依赖或打包构建工具。
+项目使用 **pnpm** 进行依赖管理。
 
-### 1. 本地直接运行
-* 方式一：直接双击 `index.html` 在浏览器中打开。
-* 方式二：使用 VS Code 的 `Live Server` 扩展或 Python 快速搭建本地服务：
-  ```bash
-  # 使用 Python 搭建静态服务器
-  python -m http.server 8080
-  ```
-  然后访问 `http://localhost:8080` 即可体验。
+### 1. 安装依赖
+```bash
+pnpm install
+```
 
-### 2. 配置 GPT 大模型对弈（安全方案）
-为防范 API Key 泄露，代码仓库中**不再硬编码任何 API 秘钥**。体验 **✨ GPT 大模型对弈** 模式：
+### 2. 启动本地开发服务 (Hot Reloading)
+```bash
+pnpm dev
+```
+启动后在浏览器打开控制台提示的本地地址（如 `http://localhost:3000`）即可体验。
 
-* **方式一：通过 UI 界面安全设置（推荐 🛡️）**
-  1. 在游戏左侧控制面板点击 **🔑 GPT 大模型 API 设置** 按钮。
-  2. 填入您的 API Key、API Base URL（中转地址）与模型名称。
-  3. 点击 **💾 保存配置**。Key 将加密且仅存储在您浏览器的 `localStorage` 中，绝不上传远程仓库。
-
-* **方式二：修改配置文件**
-  也可在 [js/config.js](file:///e:/ai/ai-xiangqi/js/config.js) 中直接配置默认缺省参数：
-  ```javascript
-  const GAME_CONFIG = {
-    API_KEY: "",                   // 默认留空，避免泄露
-    MODEL: "gpt-5.5",              // 调用的模型名称
-    BASE_URL: "https://xuseny.online/v1", // API 中转地址
-    USE_CORS_PROXY: true,          // 是否开启跨域代理（内置自动多代理降级）
-    CORS_PROXY_PREFIX: ""          // 自定义 CORS 代理前缀（可选）
-  };
-  ```
-
-> 💡 **解决跨域与 429 报错**：若遇到 `429 (Too Many Requests)` 或 `CORS policy` 报错，系统已自动启用备用代理通道；您也可在 `CORS_PROXY_PREFIX` 中指定第三方代理前缀（如 `https://thingproxy.freeboard.io/fetch/`）。
-
----
-
-## 📖 操作指南
-
-1. **选择棋子**：鼠标左键点击己方棋子，选中后显示高亮圈。
-2. **走棋/吃子**：点击绿色圆圈可移动，点击红色目标圈可吃子。
-3. **切换主题**：在侧边栏“棋盘主题”下拉菜单中随时切换木纹、水墨或暗黑风格。
-4. **局势分析**：右侧面板实时更新双方用时倒计时与优势百分比评估条。
+### 3. 构建生产打包
+```bash
+pnpm build
+```
+打包输出文件将存放于 `dist/` 目录中。
 
 ---
 

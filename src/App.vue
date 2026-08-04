@@ -1,0 +1,138 @@
+<template>
+  <div id="app-container">
+    <!-- Top Header -->
+    <GameHeader />
+
+    <!-- Main 3-Column Layout -->
+    <main class="main-layout">
+      <!-- Left Control Panel -->
+      <GameControlPanel
+        :mode="mode"
+        :ai-difficulty="aiDifficulty"
+        :player-side="playerSide"
+        :endgame-level-index="endgameLevelIndex"
+        :current-theme="currentTheme"
+        :endgame-levels="endgameLevels"
+        :current-endgame-desc="currentEndgameDesc"
+        :sound-enabled="soundEnabled"
+        @update:mode="setMode"
+        @update:aiDifficulty="setDifficulty"
+        @update:playerSide="setPlayerSide"
+        @update:endgameLevelIndex="setEndgameLevel"
+        @update:currentTheme="applyTheme"
+        @start-new-game="startNewGame"
+        @undo-move="undoMove"
+        @show-hint="showHint"
+        @open-fen-modal="fenModalActive = true"
+        @open-help-modal="helpModalActive = true"
+        @open-api-modal="apiModalActive = true"
+        @toggle-sound="toggleSound"
+      />
+
+      <!-- Center Board Area -->
+      <GameBoard
+        :grid="grid"
+        :selected-square="selectedSquare"
+        :valid-moves="validMoves"
+        :last-move="lastMove"
+        :check-banner="checkBanner"
+        :vibrate-board="vibrateBoard"
+        @cell-click="handleCellClick"
+      />
+
+      <!-- Right Status & History Panel -->
+      <GameStatusPanel
+        :turn="turn"
+        :formatted-red-time="formattedRedTime"
+        :formatted-black-time="formattedBlackTime"
+        :eval-red-pct="evalRedPct"
+        :eval-black-pct="evalBlackPct"
+        :show-gpt-card="showGptCard"
+        :gpt-commentary="gptCommentary"
+        :move-history="moveHistory"
+        :captured-red="capturedRed"
+        :captured-black="capturedBlack"
+      />
+    </main>
+
+    <!-- Game Over Modal Overlay -->
+    <div class="overlay" :class="{ active: gameOverOverlay.active }">
+      <div class="overlay-card">
+        <h2 class="overlay-title">{{ gameOverOverlay.title }}</h2>
+        <p class="overlay-desc">{{ gameOverOverlay.desc }}</p>
+        <button class="btn btn-primary" style="font-size: 1.1rem; padding: 12px 24px" @click="startNewGame">
+          再来一局
+        </button>
+      </div>
+    </div>
+
+    <!-- Modals -->
+    <FenModal
+      v-model="fenModalActive"
+      :current-fen="currentFen"
+      :move-history="moveHistory"
+      @apply-fen="applyFen"
+    />
+    <HelpModal v-model="helpModalActive" />
+    <ApiModal v-model="apiModalActive" :llm-ai="llmAi" />
+  </div>
+</template>
+
+<script setup>
+import GameHeader from './components/GameHeader.vue';
+import GameBoard from './components/GameBoard.vue';
+import GameControlPanel from './components/GameControlPanel.vue';
+import GameStatusPanel from './components/GameStatusPanel.vue';
+import FenModal from './components/FenModal.vue';
+import HelpModal from './components/HelpModal.vue';
+import ApiModal from './components/ApiModal.vue';
+import { useXiangqiGame } from './composables/useXiangqiGame.js';
+
+const {
+  grid,
+  turn,
+  mode,
+  aiDifficulty,
+  playerSide,
+  selectedSquare,
+  validMoves,
+  lastMove,
+  formattedRedTime,
+  formattedBlackTime,
+  evalRedPct,
+  evalBlackPct,
+  moveHistory,
+  capturedRed,
+  capturedBlack,
+  currentTheme,
+  soundEnabled,
+  checkBanner,
+  vibrateBoard,
+  gptCommentary,
+  showGptCard,
+  gameOverOverlay,
+  fenModalActive,
+  helpModalActive,
+  apiModalActive,
+  endgameLevels,
+  endgameLevelIndex,
+  currentEndgameDesc,
+  currentFen,
+  startNewGame,
+  handleCellClick,
+  undoMove,
+  showHint,
+  toggleSound,
+  applyTheme,
+  setMode,
+  setDifficulty,
+  setPlayerSide,
+  setEndgameLevel,
+  applyFen,
+  llmAi
+} = useXiangqiGame();
+</script>
+
+<style lang="scss">
+@use './assets/styles/main.scss';
+</style>
