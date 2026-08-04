@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>中国象棋 - Xiangqi</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="app-container">
+      <!-- Top Header -->
+      <header class="game-header">
+        <h1 class="game-title">中國象棋</h1>
+        <p class="game-subtitle">CHINESE CHESS - VIBECODING EDITION</p>
+      </header>
+
+      <!-- Main Game Section -->
+      <main class="main-layout">
+        <!-- Left Sidebar: Controls & Settings -->
+        <aside class="side-panel left-panel">
+          <!-- Mode & Controls Card -->
+          <div class="card-panel">
+            <h2 class="card-title">⚙️ 游戏设置</h2>
+            <div class="control-group">
+              <div class="control-item">
+                <label for="select-mode">对战模式:</label>
+                <select id="select-mode">
+                  <option value="pvp">双人对决 (PvP)</option>
+                  <option value="pvai" selected>人机对弈 (PvAI)</option>
+                  <option value="endgame">🏆 残局闯关 (Endgame)</option>
+                </select>
+              </div>
+
+              <div id="ai-settings" class="control-group">
+                <div class="control-item">
+                  <label for="select-player-side">玩家执棋:</label>
+                  <select id="select-player-side">
+                    <option value="r">执红 (先手)</option>
+                    <option value="b">执黑 (后手)</option>
+                  </select>
+                </div>
+                <div class="control-item">
+                  <label for="select-difficulty">AI 难度:</label>
+                  <select id="select-difficulty">
+                    <option value="easy">入门 (Easy)</option>
+                    <option value="medium" selected>中级 (Medium)</option>
+                    <option value="hard">大师 (Hard)</option>
+                    <option value="gemini">✨ GPT 大模型对弈</option>
+                  </select>
+                </div>
+              </div>
+
+              <div id="endgame-settings" class="control-group" style="display: none">
+                <div class="control-item">
+                  <label for="select-endgame-level">残局关卡:</label>
+                  <select id="select-endgame-level"></select>
+                </div>
+                <div id="endgame-desc" class="endgame-desc-box"></div>
+              </div>
+
+              <div class="control-item">
+                <label for="select-theme">棋盘主题:</label>
+                <select id="select-theme">
+                  <option value="wood">🪵 经典木纹</option>
+                  <option value="ink">🖌️ 典雅水墨</option>
+                  <option value="dark">🌌 赛博暗黑</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="btn-grid" style="margin-top: 10px;">
+              <button id="btn-new-game" class="btn btn-primary">🎮 重新开始</button>
+              <button id="btn-undo" class="btn">↩️ 悔棋</button>
+              <button id="btn-hint" class="btn">💡 提示</button>
+              <button id="btn-fen-tools" class="btn">📜 FEN/棋谱</button>
+              <button id="btn-help-modal" class="btn" style="grid-column: span 2; background: rgba(212, 163, 115, 0.2); border-color: var(--accent-gold);">
+                📖 玩法指南与帮助
+              </button>
+              <button id="btn-api-config" class="btn" style="grid-column: span 2; background: rgba(129, 140, 248, 0.2); border-color: #818cf8;">
+                🔑 GPT 大模型 API 设置
+              </button>
+              <button id="btn-sound" class="btn" style="grid-column: span 2">
+                🔊 音效: 开
+              </button>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Center: Board Area -->
+        <div class="board-area">
+          <div id="check-banner" class="check-banner">⚡ 将军！</div>
+          <div id="game-board-container"></div>
+        </div>
+
+        <!-- Right Sidebar: Status & History & Graveyard -->
+        <aside class="side-panel right-panel">
+          <!-- Game Status & Timer Card -->
+          <div class="card-panel">
+            <div id="turn-status" class="status-badge status-red">
+              红方 (先手) 行棋
+            </div>
+            <div class="timer-box">
+              <div class="timer-item">
+                <span class="timer-label">红方用时</span>
+                <span id="red-timer" class="timer-val" style="color: #ff7675">10:00</span>
+              </div>
+              <div class="timer-item">
+                <span class="timer-label">黑方用时</span>
+                <span id="black-timer" class="timer-val" style="color: #74b9ff">10:00</span>
+              </div>
+            </div>
+
+            <!-- Real-time Advantage Evaluation Bar -->
+            <div class="eval-bar-container" style="margin-top: 10px;">
+              <div class="eval-labels">
+                <span id="eval-text-red" class="eval-label red-text">红 50%</span>
+                <span id="eval-text-black" class="eval-label black-text">黑 50%</span>
+              </div>
+              <div class="eval-track">
+                <div id="eval-fill-red" class="eval-fill eval-red" style="width: 50%"></div>
+                <div id="eval-fill-black" class="eval-fill eval-black" style="width: 50%"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Gemini/GPT Real-time AI Commentary Card -->
+          <div id="gemini-commentary-card" class="card-panel" style="display: none">
+            <h2 class="card-title">🤖 GPT 实时棋评</h2>
+            <div id="gemini-commentary-box" class="gemini-commentary-box">
+              等待 GPT 下子并进行战略分析...
+            </div>
+          </div>
+
+          <!-- History Log Card -->
+          <div class="card-panel history-card" style="flex: 1; display: flex; flex-direction: column; min-height: 140px;">
+            <h2 class="card-title">📜 对局棋谱</h2>
+            <div id="move-history-list" class="history-log" style="flex: 1;"></div>
+          </div>
+
+          <!-- Captured Pieces Card -->
+          <div class="card-panel">
+            <h2 class="card-title">⚔️ 吃子统计</h2>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 2px;">黑方吃掉红方:</div>
+            <div id="captured-red" class="graveyard"></div>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 6px; margin-bottom: 2px;">红方吃掉黑方:</div>
+            <div id="captured-black" class="graveyard"></div>
+          </div>
+        </aside>
+      </main>
+    </div>
+
+    <!-- Game Over Modal Overlay -->
+    <div id="game-over-overlay" class="overlay">
+      <div class="overlay-card">
+        <h2 id="overlay-title" class="overlay-title">🏆 绝杀胜出！</h2>
+        <p id="overlay-desc" class="overlay-desc">红方将死黑方</p>
+        <button
+          id="btn-restart-overlay"
+          class="btn btn-primary"
+          style="font-size: 1.1rem; padding: 12px 24px"
+        >
+          再来一局
+        </button>
+      </div>
+    </div>
+
+    <!-- FEN / PGN Tools Modal Overlay -->
+    <div id="fen-modal-overlay" class="overlay">
+      <div class="overlay-card fen-modal-card">
+        <h2 class="overlay-title">📜 FEN 局面与棋谱工具</h2>
+        
+        <div class="fen-field-group">
+          <label>当前 FEN 字符串 (Forsyth–Edwards Notation):</label>
+          <textarea id="fen-input-text" rows="3" class="fen-textarea"></textarea>
+          <div class="fen-btn-row">
+            <button id="btn-copy-fen" class="btn">📋 复制 FEN</button>
+            <button id="btn-apply-fen" class="btn btn-primary">🚀 摆设该 FEN 局势</button>
+          </div>
+        </div>
+
+        <div class="fen-field-group" style="margin-top: 16px;">
+          <label>PGN 导出文本:</label>
+          <textarea id="pgn-export-text" rows="4" class="fen-textarea" readonly></textarea>
+          <button id="btn-copy-pgn" class="btn" style="margin-top: 6px;">📋 复制 PGN 棋谱</button>
+        </div>
+
+        <button id="btn-close-fen-modal" class="btn" style="margin-top: 20px; width: 100%;">关闭窗口</button>
+      </div>
+    </div>
+
+    <!-- Game Help / Manual Modal Overlay -->
+    <div id="help-modal-overlay" class="overlay">
+      <div class="overlay-card fen-modal-card" style="max-width: 600px; text-align: left;">
+        <h2 class="overlay-title" style="text-align: center;">📖 游戏操作与玩法说明</h2>
+        
+        <div class="help-section" style="max-height: 420px; overflow-y: auto; padding-right: 8px;">
+          <h3 style="color: var(--accent-gold); margin-top: 10px; font-size: 1.05rem;">🎯 基础行棋操作</h3>
+          <ul style="padding-left: 20px; font-size: 0.9rem; color: var(--text-main); line-height: 1.6;">
+            <li><strong>选择棋子</strong>：点击己方棋子，棋子将呈现高亮选中状态。</li>
+            <li><strong>走棋/吃子</strong>：点击棋盘上的绿色高亮圈（可行走目标）或红色目标圈（可吃目标）即可落子。</li>
+          </ul>
+
+          <h3 style="color: var(--accent-gold); margin-top: 14px; font-size: 1.05rem;">⚔️ 对战模式介绍</h3>
+          <ul style="padding-left: 20px; font-size: 0.9rem; color: var(--text-main); line-height: 1.6;">
+            <li><strong>👥 双人对决 (PvP)</strong>：支持同屏两人轮流执红/执黑下棋。</li>
+            <li><strong>🤖 人机对弈 (PvAI)</strong>：与 AI 进行对决。可自定义玩家执红（先手）或执黑（后手）。</li>
+            <li><strong>🏆 残局闯关 (Endgame)</strong>：内置《双马饮泉》、《千里独行》等经典杀局，破解通关后会自动保存记录。</li>
+          </ul>
+
+          <h3 style="color: var(--accent-gold); margin-top: 14px; font-size: 1.05rem;">🤖 GPT 大模型 AI 对弈</h3>
+          <ul style="padding-left: 20px; font-size: 0.9rem; color: var(--text-main); line-height: 1.6;">
+            <li>在 AI 难度中选择 <strong>✨ GPT 大模型对弈</strong> 模式。</li>
+            <li>在 <code style="background: rgba(0,0,0,0.4); padding: 2px 6px; border-radius: 4px;">js/config.js</code> 中填写您的 Key 与中转 Base URL。</li>
+            <li>GPT 下棋时会在侧边栏输出**实时的战术思路与棋局点评**！</li>
+          </ul>
+
+          <h3 style="color: var(--accent-gold); margin-top: 14px; font-size: 1.05rem;">🛠️ 实用工具与快捷按键</h3>
+          <ul style="padding-left: 20px; font-size: 0.9rem; color: var(--text-main); line-height: 1.6;">
+            <li><strong>↩️ 悔棋</strong>：撤销上一步走法（人机模式下自动连撤两步）。</li>
+            <li><strong>💡 提示</strong>：AI 自动计算并显示当前局势的最优走法。</li>
+            <li><strong>📜 FEN/棋谱</strong>：支持复制/加载 FEN 局面状态或导出 PGN 文本棋谱。</li>
+            <li><strong>🎨 棋盘主题</strong>：可切换【经典木纹】、【典典水墨】、【赛博暗黑】皮肤。</li>
+          </ul>
+        </div>
+
+        <button id="btn-close-help-modal" class="btn btn-primary" style="margin-top: 16px; width: 100%;">我知道了</button>
+      </div>
+    </div>
+
+    <!-- GPT API Settings Modal Overlay -->
+    <div id="api-modal-overlay" class="overlay">
+      <div class="overlay-card fen-modal-card" style="max-width: 520px; text-align: left;">
+        <h2 class="overlay-title" style="text-align: center;">🔑 GPT API 安全设置</h2>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px; line-height: 1.5;">
+          🛡️ <strong>安全防泄漏提示</strong>：您的 API Key 将仅保存在您浏览器的本地存储 (localStorage) 中，绝不会写入源代码文件或上传至任何远程仓库。
+        </p>
+
+        <div class="fen-field-group">
+          <label for="api-key-input">API Key (OpenAI / DeepSeek / 中转 Key):</label>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <input type="password" id="api-key-input" class="fen-textarea" style="height: 38px; resize: none; flex: 1; padding: 8px 12px;" placeholder="例如: sk-..." />
+            <button id="btn-toggle-key-visibility" class="btn" style="padding: 8px 12px; height: 38px;" title="显示/隐藏 Key">👁️</button>
+          </div>
+        </div>
+
+        <div class="fen-field-group" style="margin-top: 12px;">
+          <label for="api-base-url-input">API Base URL (接口域名 / 中转地址):</label>
+          <input type="text" id="api-base-url-input" class="fen-textarea" style="height: 38px; resize: none; padding: 8px 12px;" placeholder="例如: https://xuseny.online/v1 或 https://api.openai.com/v1" />
+        </div>
+
+        <div class="fen-field-group" style="margin-top: 12px;">
+          <label for="api-model-input">模型名称 (Model):</label>
+          <input type="text" id="api-model-input" class="fen-textarea" style="height: 38px; resize: none; padding: 8px 12px;" placeholder="例如: gpt-5.5 / gpt-4o-mini / deepseek-chat" />
+        </div>
+
+        <div id="api-status-msg" style="font-size: 0.85rem; margin-top: 10px; min-height: 20px; font-weight: bold;"></div>
+
+        <div class="fen-btn-row" style="margin-top: 16px;">
+          <button id="btn-save-api" class="btn btn-primary" style="flex: 1;">💾 保存配置</button>
+          <button id="btn-clear-api" class="btn" style="color: #ff7675; border-color: #ff7675;">🗑️ 清除</button>
+          <button id="btn-close-api-modal" class="btn">关闭</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/constants.js"></script>
+    <script src="js/audio.js"></script>
+    <script src="js/rules.js"></script>
+    <script src="js/board.js"></script>
+    <script src="js/endgame.js"></script>
+    <script src="js/llm-ai.js"></script>
+    <script src="js/ai.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/game.js"></script>
+  </body>
+</html>
+
+
+
+
+
