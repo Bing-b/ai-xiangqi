@@ -283,6 +283,7 @@ class XiangqiGame {
         }
 
         try {
+          this.ui.showGeminiCommentary('🤖 GPT 正在深度推演最佳棋路中...');
           const historyNotations = this.board.moveHistory.map(h => h.notation);
           const result = await this.llmAi.getMoveFromGPT(this.board.grid, this.board.turn, legalMoves, historyNotations);
           this.ui.showGeminiCommentary(`🤖 GPT 棋评: "${result.commentary}"`);

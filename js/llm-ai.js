@@ -82,23 +82,16 @@ class LLMXiangqiAI {
       return `${idx}: ${notation} (从[${m.fromR},${m.fromC}]到[${m.toR},${m.toC}])`;
     }).join('\n');
 
-    const systemPrompt = `你是一位精通中国象棋的特级大师AI。你需要分析象棋局面并做出最佳决策。`;
+    const systemPrompt = `你是一位精通中国象棋的特级大师AI。按要求速选最佳着法。`;
 
-    const userPrompt = `当前对局局面 FEN 为: "${currentFen}"
-轮到你 (${sideName}) 行棋。
-近几步历史着法: ${moveHistoryNotations.slice(-6).join(', ') || '对局刚开始'}
-
-你可选的所有合法着法列表如下 (格式为 "索引: 招法名称"):
+    const userPrompt = `当前FEN: "${currentFen}"
+轮到你 (${sideName})。近几步: ${moveHistoryNotations.slice(-4).join(', ') || '开局'}
+可选合法着法:
 ${formattedMoves}
 
-请分析局势，从中选择最强、最有战略战术意义的一步着法。
-必须仅输出合法的 JSON 格式数据，包含以下两个字段：
-1. "moveIndex": 你选择的着法索引数字 (例如: 0)
-2. "commentary": 一句简明精辟的中文棋评（讲解你选择这一步的战略意图，如“马八进七巩固中路防线，同时为车出路做铺垫”）。
-
-请务必直接输出格式正确的 JSON，不要添加 markdown 格式包裹或其他多余文本。格式示例：
-{"moveIndex": 0, "commentary": "我选择车五平六，封锁敌方马路，夺取中路控制权。"}
-`;
+从列表中选出最优一步，仅输出合法 JSON 格式数据：
+{"moveIndex": 索引数字, "commentary": "20字以内精辟战略战术点评"}
+请直接输出 JSON，不要添加 Markdown 或多余字符。`;
 
     // Determine Candidate Endpoints for Proxy Platforms
     let cleanBase = (this.baseUrl || 'https://api.openai.com/v1').replace(/\/+$/, '');
@@ -154,7 +147,8 @@ ${formattedMoves}
               { role: 'system', content: systemPrompt },
               { role: 'user', content: userPrompt }
             ],
-            temperature: 0.2
+            temperature: 0.2,
+            max_tokens: 150
           })
         });
 
