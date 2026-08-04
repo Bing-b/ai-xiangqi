@@ -70,17 +70,17 @@ class XiangqiUI {
     bg.setAttribute("y", "0");
     bg.setAttribute("width", "900");
     bg.setAttribute("height", "1000");
-    bg.setAttribute("fill", "url(#woodTexture)");
+    bg.setAttribute("class", "board-bg-rect");
     bg.setAttribute("rx", "16");
     svg.appendChild(bg);
 
     // Definitions (gradients, filters)
     const defs = document.createElementNS(svgNS, "defs");
     defs.innerHTML = `
-      <linearGradient id="woodTexture" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="#e8c39e" />
-        <stop offset="50%" stop-color="#d4a373" />
-        <stop offset="100%" stop-color="#bc8a5f" />
+      <linearGradient id="boardGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="var(--board-bg-grad-1)" />
+        <stop offset="50%" stop-color="var(--board-bg-grad-2)" />
+        <stop offset="100%" stop-color="var(--board-bg-grad-3)" />
       </linearGradient>
       <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
         <feDropShadow dx="2" dy="4" stdDeviation="4" flood-opacity="0.3"/>
@@ -101,7 +101,7 @@ class XiangqiUI {
     outerFrame.setAttribute("width", "830");
     outerFrame.setAttribute("height", "930");
     outerFrame.setAttribute("fill", "none");
-    outerFrame.setAttribute("stroke", "#5c3d2e");
+    outerFrame.setAttribute("class", "board-outer-frame");
     outerFrame.setAttribute("stroke-width", "6");
     svg.appendChild(outerFrame);
 
@@ -111,13 +111,13 @@ class XiangqiUI {
     innerFrame.setAttribute("width", "810");
     innerFrame.setAttribute("height", "910");
     innerFrame.setAttribute("fill", "none");
-    innerFrame.setAttribute("stroke", "#3d2314");
+    innerFrame.setAttribute("class", "board-inner-frame");
     innerFrame.setAttribute("stroke-width", "3");
     svg.appendChild(innerFrame);
 
     // Grid lines group
     const gLines = document.createElementNS(svgNS, "g");
-    gLines.setAttribute("stroke", "#3d2314");
+    gLines.setAttribute("class", "board-grid-lines");
     gLines.setAttribute("stroke-width", "2.5");
 
     // Horizontal lines (10 lines)
@@ -191,7 +191,7 @@ class XiangqiUI {
     text1.setAttribute("font-family", "'Ma Shan Zheng', 'Kaiti', 'STKaiti', serif");
     text1.setAttribute("font-size", "52");
     text1.setAttribute("font-weight", "bold");
-    text1.setAttribute("fill", "#5c2c16");
+    text1.setAttribute("class", "river-text");
     text1.textContent = "楚  河";
     svg.appendChild(text1);
 
@@ -201,7 +201,7 @@ class XiangqiUI {
     text2.setAttribute("font-family", "'Ma Shan Zheng', 'Kaiti', 'STKaiti', serif");
     text2.setAttribute("font-size", "52");
     text2.setAttribute("font-weight", "bold");
-    text2.setAttribute("fill", "#5c2c16");
+    text2.setAttribute("class", "river-text");
     text2.textContent = "漢  界";
     svg.appendChild(text2);
 
@@ -376,6 +376,15 @@ class XiangqiUI {
     Object.values(GAME_THEMES).forEach(t => container.classList.remove(t.class));
     // Apply selected theme
     container.classList.add(theme.class);
+
+    try {
+      localStorage.setItem('xiangqi_theme', themeKey);
+    } catch (e) {}
+
+    const selectElem = document.getElementById('select-theme');
+    if (selectElem && selectElem.value !== themeKey) {
+      selectElem.value = themeKey;
+    }
   }
 
   showGeminiCommentary(text) {

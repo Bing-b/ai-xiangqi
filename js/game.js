@@ -23,6 +23,9 @@ class XiangqiGame {
     this.blackTime = 600;
 
     this.ui.initApiModal(this.llmAi);
+    const savedTheme = localStorage.getItem('xiangqi_theme') || 'wood';
+    this.ui.applyTheme(savedTheme);
+
     this.initEventListeners();
     this.populateEndgameDropdown();
     this.startNewGame();
