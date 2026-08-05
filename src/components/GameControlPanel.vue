@@ -26,7 +26,6 @@
               <option value="easy">入门 (Easy)</option>
               <option value="medium">中级 (Medium)</option>
               <option value="hard">大师 (Hard)</option>
-              <option value="gemini_official">♊ Gemini 2.5-Flash 大模型</option>
               <option value="gemini">✨ GPT 大模型对弈</option>
             </select>
           </div>

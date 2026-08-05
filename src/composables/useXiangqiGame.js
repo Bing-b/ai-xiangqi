@@ -2,7 +2,6 @@ import { ref, reactive, computed, onMounted, onUnmounted } from 'vue';
 import { XiangqiBoard } from '../core/board.js';
 import { XiangqiAI } from '../core/ai.js';
 import { LLMXiangqiAI } from '../core/llm-ai.js';
-import { GeminiXiangqiAI } from '../core/gemini-ai.js';
 import { EndgameManager } from '../core/endgame.js';
 import { sounds } from '../core/audio.js';
 import { Rules } from '../core/rules.js';
@@ -12,7 +11,6 @@ export function useXiangqiGame() {
   const board = new XiangqiBoard();
   const ai = new XiangqiAI('medium');
   const llmAi = new LLMXiangqiAI();
-  const officialGeminiAi = new GeminiXiangqiAI();
   const endgameManager = new EndgameManager();
 
   // Reactive Game States
@@ -257,26 +255,7 @@ export function useXiangqiGame() {
     isAiThinking.value = true;
 
     try {
-      if (aiDifficulty.value === 'gemini_official') {
-        const legalMoves = Rules.getAllLegalMoves(board.grid, board.turn);
-        if (legalMoves.length === 0) return;
-
-        if (!officialGeminiAi.hasApiKey()) {
-          gptCommentary.value = '⚠️ 未在 .env 文件中检测到 VITE_GEMINI_API_KEY。现已自动使用本地 AI 代下。';
-          const fallbackMove = await ai.getBestMove(board.grid, board.turn);
-          if (fallbackMove && gameActive.value) await makeMove(fallbackMove);
-          return;
-        }
-
-        gptCommentary.value = '♊ Gemini 2.5-Flash 正在思考最佳棋路中...';
-        const historyNotations = board.moveHistory.map(h => h.notation);
-        const result = await officialGeminiAi.getMoveFromGemini(board.grid, board.turn, legalMoves, historyNotations);
-        gptCommentary.value = `♊ Gemini 棋评: "${result.commentary}"`;
-
-        if (result.move && gameActive.value) {
-          await makeMove(result.move);
-        }
-      } else if (aiDifficulty.value === 'gemini') {
+      if (aiDifficulty.value === 'gemini') {
         const legalMoves = Rules.getAllLegalMoves(board.grid, board.turn);
         if (legalMoves.length === 0) return;
 
@@ -342,14 +321,7 @@ export function useXiangqiGame() {
 
   const setDifficulty = (newDiff) => {
     aiDifficulty.value = newDiff;
-    if (newDiff === 'gemini_official') {
-      showGptCard.value = true;
-      if (!officialGeminiAi.hasApiKey()) {
-        gptCommentary.value = '⚠️ 未在 .env 文件中检测到 VITE_GEMINI_API_KEY。';
-      } else {
-        gptCommentary.value = '♊ 已切换为 Gemini 2.5-Flash 大模型对手！';
-      }
-    } else if (newDiff === 'gemini') {
+    if (newDiff === 'gemini') {
       showGptCard.value = true;
       if (!llmAi.hasApiKey()) {
         gptCommentary.value = '⚠️ 未检测到 API Key，已为您打开配置窗口。';
