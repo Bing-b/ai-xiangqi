@@ -44,6 +44,17 @@
         <!-- River Text -->
         <text :x="getX(1.8)" :y="getY(4.65)" font-family="'Ma Shan Zheng', 'Kaiti', serif" font-size="52" font-weight="bold" class="river-text">楚  河</text>
         <text :x="getX(5.8)" :y="getY(4.65)" font-family="'Ma Shan Zheng', 'Kaiti', serif" font-size="52" font-weight="bold" class="river-text">漢  界</text>
+
+        <!-- SVG Trajectory Line for Last Move -->
+        <g v-if="lastMove" class="last-move-svg-group">
+          <line
+            :x1="getX(lastMove.fromC)"
+            :y1="getY(lastMove.fromR)"
+            :x2="getX(lastMove.toC)"
+            :y2="getY(lastMove.toR)"
+            class="last-move-line"
+          />
+        </g>
       </svg>
 
       <!-- Interactive Cells & Piece Layer -->
@@ -57,6 +68,19 @@
             :style="getCellStyle(r, c)"
             @click="emitCellClick(r, c)"
           >
+            <!-- Start Position Marker (Where piece moved from) -->
+            <div v-if="isLastMoveFrom(r, c)" class="last-move-from-marker">
+              <span class="from-crosshair"></span>
+            </div>
+
+            <!-- End Position Marker (Where piece landed) -->
+            <div v-if="isLastMoveTo(r, c)" class="last-move-to-marker">
+              <span class="corner top-left"></span>
+              <span class="corner top-right"></span>
+              <span class="corner bottom-left"></span>
+              <span class="corner bottom-right"></span>
+            </div>
+
             <div v-if="piece" class="piece" :class="piece[0] === 'r' ? 'piece-red' : 'piece-black'">
               <div class="piece-inner">{{ PIECE_NAMES[piece] }}</div>
             </div>
@@ -84,6 +108,9 @@ const emit = defineEmits(['cell-click']);
 const getX = c => 50 + c * 100;
 const getY = r => 50 + r * 100;
 
+const isLastMoveFrom = (r, c) => props.lastMove && props.lastMove.fromR === r && props.lastMove.fromC === c;
+const isLastMoveTo = (r, c) => props.lastMove && props.lastMove.toR === r && props.lastMove.toC === c;
+
 const getCellStyle = (r, c) => ({
   left: `${((50 + c * 100) / 900) * 100}%`,
   top: `${((50 + r * 100) / 1000) * 100}%`
@@ -104,8 +131,11 @@ const getCellClass = (r, c) => {
     }
   }
 
-  if (props.lastMove && ((props.lastMove.fromR === r && props.lastMove.fromC === c) || (props.lastMove.toR === r && props.lastMove.toC === c))) {
-    classes.push('last-move');
+  if (isLastMoveFrom(r, c)) {
+    classes.push('last-move-from');
+  }
+  if (isLastMoveTo(r, c)) {
+    classes.push('last-move-to');
   }
 
   return classes.join(' ');

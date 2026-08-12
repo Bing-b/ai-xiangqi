@@ -112,20 +112,114 @@
     animation: pulseCapture 1s infinite alternate;
   }
 
-  &.last-move::before {
-    content: '';
-    position: absolute;
-    width: 86%;
-    height: 86%;
-    border-radius: 50%;
-    background: rgba(241, 196, 15, 0.3);
-    border: 2px solid rgba(241, 196, 15, 0.7);
-    z-index: 1;
-    pointer-events: none;
+  &.last-move-from {
+    .last-move-from-marker {
+      position: absolute;
+      width: 78%;
+      height: 78%;
+      border-radius: 50%;
+      border: 2.5px dashed #f39c12;
+      background: rgba(243, 156, 18, 0.22);
+      box-shadow: 0 0 12px rgba(243, 156, 18, 0.5), inset 0 0 8px rgba(243, 156, 18, 0.25);
+      z-index: 1;
+      pointer-events: none;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      .from-crosshair {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #f39c12;
+        box-shadow: 0 0 8px #f39c12;
+      }
+    }
+  }
+
+  &.last-move-to {
+    .last-move-to-marker {
+      position: absolute;
+      width: 96%;
+      height: 96%;
+      pointer-events: none;
+      z-index: 8;
+      animation: lastMovePulse 1.2s ease-in-out infinite alternate;
+
+      &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        border: 3px solid #f39c12;
+        box-shadow: 0 0 16px #f39c12, inset 0 0 8px rgba(243, 156, 18, 0.4);
+      }
+
+      .corner {
+        position: absolute;
+        width: 13px;
+        height: 13px;
+        border-color: #f39c12;
+        border-style: solid;
+        filter: drop-shadow(0 0 5px #f39c12);
+
+        &.top-left {
+          top: -2px;
+          left: -2px;
+          border-width: 3px 0 0 3px;
+          border-top-left-radius: 4px;
+        }
+        &.top-right {
+          top: -2px;
+          right: -2px;
+          border-width: 3px 3px 0 0;
+          border-top-right-radius: 4px;
+        }
+        &.bottom-left {
+          bottom: -2px;
+          left: -2px;
+          border-width: 0 0 3px 3px;
+          border-bottom-left-radius: 4px;
+        }
+        &.bottom-right {
+          bottom: -2px;
+          right: -2px;
+          border-width: 0 3px 3px 0;
+          border-bottom-right-radius: 4px;
+        }
+      }
+    }
   }
 }
 
+/* SVG Trajectory Line */
+.last-move-line {
+  stroke: #f39c12;
+  stroke-width: 4;
+  stroke-dasharray: 8, 8;
+  stroke-linecap: round;
+  opacity: 0.75;
+  animation: moveLinePulse 1.5s infinite linear;
+}
+
 /* Animations */
+@keyframes moveLinePulse {
+  0% { stroke-dashoffset: 32; opacity: 0.6; }
+  50% { opacity: 0.95; }
+  100% { stroke-dashoffset: 0; opacity: 0.6; }
+}
+
+@keyframes lastMovePulse {
+  from {
+    transform: scale(0.96);
+    opacity: 0.85;
+  }
+  to {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+}
+
 @keyframes pulseSelect {
   from { transform: scale(0.95); opacity: 0.8; }
   to { transform: scale(1.05); opacity: 1; }
