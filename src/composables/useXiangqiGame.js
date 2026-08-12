@@ -1,23 +1,23 @@
-import { ref, reactive, computed, onMounted, onUnmounted } from 'vue';
-import { XiangqiBoard } from '../core/board.js';
-import { XiangqiAI } from '../core/ai.js';
-import { LLMXiangqiAI } from '../core/llm-ai.js';
-import { EndgameManager } from '../core/endgame.js';
-import { sounds } from '../core/audio.js';
-import { Rules } from '../core/rules.js';
-import { RED, BLACK, gridToFen, GAME_THEMES } from '../core/constants.js';
+import { ref, reactive, computed, onMounted, onUnmounted } from "vue";
+import { XiangqiBoard } from "../core/board.js";
+import { XiangqiAI } from "../core/ai.js";
+import { LLMXiangqiAI } from "../core/llm-ai.js";
+import { EndgameManager } from "../core/endgame.js";
+import { sounds } from "../core/audio.js";
+import { Rules } from "../core/rules.js";
+import { RED, BLACK, gridToFen, GAME_THEMES } from "../core/constants.js";
 
 export function useXiangqiGame() {
   const board = new XiangqiBoard();
-  const ai = new XiangqiAI('medium');
+  const ai = new XiangqiAI("medium");
   const llmAi = new LLMXiangqiAI();
   const endgameManager = new EndgameManager();
 
   // Reactive Game States
   const grid = ref(board.getInitialGrid());
   const turn = ref(RED);
-  const mode = ref('pvai'); // 'pvp', 'pvai', 'endgame'
-  const aiDifficulty = ref('medium');
+  const mode = ref("pvai"); // 'pvp', 'pvai', 'endgame'
+  const aiDifficulty = ref("medium");
   const playerSide = ref(RED);
 
   const selectedSquare = ref(null);
@@ -40,16 +40,16 @@ export function useXiangqiGame() {
   const capturedBlack = ref([]);
 
   // UI Overlays & Commentary
-  const currentTheme = ref(localStorage.getItem('xiangqi_theme') || 'wood');
+  const currentTheme = ref(localStorage.getItem("xiangqi_theme") || "wood");
   const soundEnabled = ref(true);
 
-  const checkBanner = reactive({ active: false, text: '' });
+  const checkBanner = reactive({ active: false, text: "" });
   const vibrateBoard = ref(false);
 
-  const gptCommentary = ref('');
+  const gptCommentary = ref("");
   const showGptCard = ref(false);
 
-  const gameOverOverlay = reactive({ active: false, title: '', desc: '' });
+  const gameOverOverlay = reactive({ active: false, title: "", desc: "" });
   const fenModalActive = ref(false);
   const helpModalActive = ref(false);
   const apiModalActive = ref(false);
@@ -59,14 +59,14 @@ export function useXiangqiGame() {
   const endgameLevelIndex = ref(0);
   const currentEndgameDesc = computed(() => {
     const lvl = endgameLevels.value[endgameLevelIndex.value];
-    return lvl ? `${lvl.name} (${lvl.difficulty}): ${lvl.desc}` : '';
+    return lvl ? `${lvl.name} (${lvl.difficulty}): ${lvl.desc}` : "";
   });
 
   // Timers helper
   const formatTime = (seconds) => {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
-    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   };
 
   const formattedRedTime = computed(() => formatTime(redTime.value));
@@ -101,14 +101,14 @@ export function useXiangqiGame() {
   const handleTimeOut = (losingSide) => {
     gameActive.value = false;
     stopTimer();
-    const winningSideName = losingSide === RED ? '黑方' : '红方';
-    gameOverOverlay.title = '⏱️ 超时获胜！';
+    const winningSideName = losingSide === RED ? "黑方" : "红方";
+    gameOverOverlay.title = "⏱️ 超时获胜！";
     gameOverOverlay.desc = `${winningSideName}因对方用时耗尽获胜！`;
     gameOverOverlay.active = true;
   };
 
   const updateStateFromBoard = () => {
-    grid.value = board.grid.map(row => [...row]);
+    grid.value = board.grid.map((row) => [...row]);
     turn.value = board.turn;
     lastMove.value = board.getLastMove();
     moveHistory.value = [...board.moveHistory];
@@ -124,25 +124,31 @@ export function useXiangqiGame() {
   const applyTheme = (themeKey) => {
     currentTheme.value = themeKey;
     const themeObj = GAME_THEMES[themeKey] || GAME_THEMES.wood;
-    Object.values(GAME_THEMES).forEach(t => document.body.classList.remove(t.class));
+    Object.values(GAME_THEMES).forEach((t) =>
+      document.body.classList.remove(t.class),
+    );
     document.body.classList.add(themeObj.class);
     try {
-      localStorage.setItem('xiangqi_theme', themeKey);
+      localStorage.setItem("xiangqi_theme", themeKey);
     } catch (e) {}
   };
 
   const triggerVibrate = () => {
     vibrateBoard.value = true;
-    setTimeout(() => { vibrateBoard.value = false; }, 400);
+    setTimeout(() => {
+      vibrateBoard.value = false;
+    }, 400);
   };
 
   const triggerCheckBanner = (side) => {
-    const sideName = side === RED ? '红方' : '黑方';
+    const sideName = side === RED ? "红方" : "黑方";
     checkBanner.text = `⚡ 将军！${sideName}被照将！`;
     checkBanner.active = true;
     triggerVibrate();
     sounds.playCheck();
-    setTimeout(() => { checkBanner.active = false; }, 2000);
+    setTimeout(() => {
+      checkBanner.active = false;
+    }, 2000);
   };
 
   const startNewGame = () => {
@@ -154,7 +160,7 @@ export function useXiangqiGame() {
     gameOverOverlay.active = false;
     resetTimers();
 
-    if (mode.value === 'endgame') {
+    if (mode.value === "endgame") {
       const lvl = endgameManager.getLevel(endgameLevelIndex.value);
       if (lvl) {
         board.loadFen(lvl.fen);
@@ -167,7 +173,10 @@ export function useXiangqiGame() {
     startTimer();
 
     // Trigger AI if computer goes first
-    if ((mode.value === 'pvai' || mode.value === 'endgame') && turn.value !== playerSide.value) {
+    if (
+      (mode.value === "pvai" || mode.value === "endgame") &&
+      turn.value !== playerSide.value
+    ) {
       triggerAiTurn();
     }
   };
@@ -175,13 +184,17 @@ export function useXiangqiGame() {
   const handleCellClick = async (r, c) => {
     if (!gameActive.value || isAiThinking.value) return;
 
-    if ((mode.value === 'pvai' || mode.value === 'endgame') && turn.value !== playerSide.value) return;
+    if (
+      (mode.value === "pvai" || mode.value === "endgame") &&
+      turn.value !== playerSide.value
+    )
+      return;
 
     const clickedPiece = board.getPiece(r, c);
 
     // If square is selected, try to move
     if (selectedSquare.value) {
-      const move = validMoves.value.find(m => m.toR === r && m.toC === c);
+      const move = validMoves.value.find((m) => m.toR === r && m.toC === c);
       if (move) {
         await makeMove(move);
         selectedSquare.value = null;
@@ -220,12 +233,12 @@ export function useXiangqiGame() {
         gameActive.value = false;
         stopTimer();
         sounds.playWin();
-        const winnerName = currentTurn === RED ? '黑方' : '红方';
-        gameOverOverlay.title = '🏆 绝杀胜出！';
+        const winnerName = currentTurn === RED ? "黑方" : "红方";
+        gameOverOverlay.title = "🏆 绝杀胜出！";
         gameOverOverlay.desc = `${winnerName}将死对手，赢得了本局比赛！`;
         gameOverOverlay.active = true;
 
-        if (mode.value === 'endgame') {
+        if (mode.value === "endgame") {
           const currentLvl = endgameLevels.value[endgameLevelIndex.value];
           if (currentLvl && currentTurn !== playerSide.value) {
             endgameManager.saveCompletedLevel(currentLvl.id);
@@ -238,14 +251,18 @@ export function useXiangqiGame() {
     } else if (Rules.isStalemate(board.grid, currentTurn)) {
       gameActive.value = false;
       stopTimer();
-      gameOverOverlay.title = '🤝 困毙和棋！';
-      gameOverOverlay.desc = '当前一方无合法走步，判定为和棋。';
+      gameOverOverlay.title = "🤝 困毙和棋！";
+      gameOverOverlay.desc = "当前一方无合法走步，判定为和棋。";
       gameOverOverlay.active = true;
       return;
     }
 
     // Trigger AI if applicable
-    if (gameActive.value && (mode.value === 'pvai' || mode.value === 'endgame') && turn.value !== playerSide.value) {
+    if (
+      gameActive.value &&
+      (mode.value === "pvai" || mode.value === "endgame") &&
+      turn.value !== playerSide.value
+    ) {
       await triggerAiTurn();
     }
   };
@@ -255,22 +272,35 @@ export function useXiangqiGame() {
     isAiThinking.value = true;
 
     try {
-      if (aiDifficulty.value === 'gemini') {
+      if (aiDifficulty.value === "gemini") {
         const legalMoves = Rules.getAllLegalMoves(board.grid, board.turn);
         if (legalMoves.length === 0) return;
 
         if (!llmAi.hasApiKey()) {
-          gptCommentary.value = '⚠️ 未检测到 API Key，请点击设置配置。现已自动使用本地 AI 代下。';
-          apiModalActive.value = true;
+          gptCommentary.value = "⚠️ 未检测到接口密钥，已自动使用本地 AI 代下。";
           const fallbackMove = await ai.getBestMove(board.grid, board.turn);
           if (fallbackMove && gameActive.value) await makeMove(fallbackMove);
           return;
         }
 
-        gptCommentary.value = '🤖 GPT 正在深度推演最佳棋路中...';
-        const historyNotations = board.moveHistory.map(h => h.notation);
-        const result = await llmAi.getMoveFromGPT(board.grid, board.turn, legalMoves, historyNotations);
-        gptCommentary.value = `🤖 GPT 棋评: "${result.commentary}"`;
+        const rateCheck = llmAi.checkRateLimit();
+        if (!rateCheck.allowed) {
+          gptCommentary.value = `⚠️ ${rateCheck.reason}，已自动使用本地 AI 代下。`;
+          const fallbackMove = await ai.getBestMove(board.grid, board.turn);
+          if (fallbackMove && gameActive.value) await makeMove(fallbackMove);
+          return;
+        }
+
+        gptCommentary.value = "🤖 大模型 AI 正在深度推演最佳棋路中...";
+        const historyNotations = board.moveHistory.map((h) => h.notation);
+        const result = await llmAi.getMoveFromGPT(
+          board.grid,
+          board.turn,
+          legalMoves,
+          historyNotations,
+        );
+        llmAi.recordCallSuccess();
+        gptCommentary.value = `🤖 AI 棋评: "${result.commentary}"`;
 
         if (result.move && gameActive.value) {
           await makeMove(result.move);
@@ -281,6 +311,11 @@ export function useXiangqiGame() {
           await makeMove(aiMove);
         }
       }
+    } catch (err) {
+      console.error("AI error:", err);
+      gptCommentary.value = `⚠️ AI 思考异常 (${err.message || "网络问题"})，已自动使用本地 AI 代下。`;
+      const fallbackMove = await ai.getBestMove(board.grid, board.turn);
+      if (fallbackMove && gameActive.value) await makeMove(fallbackMove);
     } finally {
       isAiThinking.value = false;
     }
@@ -289,7 +324,7 @@ export function useXiangqiGame() {
   const undoMove = async () => {
     if (!gameActive.value || isAiThinking.value) return;
 
-    if (mode.value === 'pvai' || mode.value === 'endgame') {
+    if (mode.value === "pvai" || mode.value === "endgame") {
       board.undoMove();
       board.undoMove();
     } else {
@@ -321,13 +356,13 @@ export function useXiangqiGame() {
 
   const setDifficulty = (newDiff) => {
     aiDifficulty.value = newDiff;
-    if (newDiff === 'gemini') {
+    if (newDiff === "gemini") {
       showGptCard.value = true;
       if (!llmAi.hasApiKey()) {
-        gptCommentary.value = '⚠️ 未检测到 API Key，已为您打开配置窗口。';
-        apiModalActive.value = true;
+        gptCommentary.value =
+          "⚠️ 未检测到接口密钥，若需使用大模型 AI 请在侧边栏手动配置。";
       } else {
-        gptCommentary.value = '🤖 已切换为 GPT 大模型对手！';
+        gptCommentary.value = "🤖 已切换为大模型 AI 对手！";
       }
     } else {
       ai.setDifficulty(newDiff);
@@ -353,7 +388,7 @@ export function useXiangqiGame() {
       updateStateFromBoard();
       fenModalActive.value = false;
     } catch (e) {
-      alert('FEN 格式有误，请输入标准的 Forsyth–Edwards Notation！');
+      alert("FEN 格式有误，请输入标准的 Forsyth–Edwards Notation！");
     }
   };
 
@@ -411,6 +446,6 @@ export function useXiangqiGame() {
     setPlayerSide,
     setEndgameLevel,
     applyFen,
-    llmAi
+    llmAi,
   };
 }

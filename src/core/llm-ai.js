@@ -10,12 +10,60 @@ export class LLMXiangqiAI {
     this.apiKey = this.loadApiKey();
     this.baseUrl = this.loadBaseUrl();
     this.modelName = this.loadModelName();
+    this.callTimestamps = [];
+    this.lastCallTime = 0;
   }
 
   refreshConfig() {
     this.apiKey = this.loadApiKey();
     this.baseUrl = this.loadBaseUrl();
     this.modelName = this.loadModelName();
+  }
+
+  checkRateLimit() {
+    const now = Date.now();
+
+    // 1. 最小调用时间间隔限制 (Cooldown)
+    const minCooldown = GAME_CONFIG.MIN_COOLDOWN_MS || 2000;
+    if (this.lastCallTime > 0 && (now - this.lastCallTime < minCooldown)) {
+      const waitSec = Math.ceil((minCooldown - (now - this.lastCallTime)) / 1000);
+      return { allowed: false, reason: `请求过于频繁，请等待 ${waitSec} 秒` };
+    }
+
+    // 2. 每分钟最大调用次数限制 (Calls per minute)
+    const maxPerMin = GAME_CONFIG.MAX_CALLS_PER_MIN || 10;
+    this.callTimestamps = this.callTimestamps.filter(t => now - t < 60000);
+    if (this.callTimestamps.length >= maxPerMin) {
+      return { allowed: false, reason: `已达到每分钟 API 调用上限 (${maxPerMin}次/分)` };
+    }
+
+    // 3. 每日最大调用次数限制 (Calls per day)
+    const maxPerDay = GAME_CONFIG.MAX_CALLS_PER_DAY || 100;
+    const today = new Date().toISOString().slice(0, 10);
+    const storageKey = `xiangqi_llm_calls_${today}`;
+    let dailyCalls = 0;
+    try {
+      dailyCalls = parseInt(localStorage.getItem(storageKey) || '0', 10);
+    } catch (e) {}
+
+    if (dailyCalls >= maxPerDay) {
+      return { allowed: false, reason: `今日 API 调用已达上限 (${maxPerDay}次/日)` };
+    }
+
+    return { allowed: true };
+  }
+
+  recordCallSuccess() {
+    const now = Date.now();
+    this.lastCallTime = now;
+    this.callTimestamps.push(now);
+
+    const today = new Date().toISOString().slice(0, 10);
+    const storageKey = `xiangqi_llm_calls_${today}`;
+    try {
+      const current = parseInt(localStorage.getItem(storageKey) || '0', 10);
+      localStorage.setItem(storageKey, (current + 1).toString());
+    } catch (e) {}
   }
 
   loadApiKey() {

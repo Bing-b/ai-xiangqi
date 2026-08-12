@@ -6,9 +6,9 @@
         <div class="control-item">
           <label>对战模式:</label>
           <select :value="mode" @change="$emit('update:mode', $event.target.value)">
-            <option value="pvp">双人对决 (PvP)</option>
-            <option value="pvai">人机对弈 (PvAI)</option>
-            <option value="endgame">🏆 残局闯关 (Endgame)</option>
+            <option value="pvp">双人对决</option>
+            <option value="pvai">人机对弈</option>
+            <option value="endgame">🏆 残局闯关</option>
           </select>
         </div>
 
@@ -23,10 +23,10 @@
           <div class="control-item">
             <label>AI 难度:</label>
             <select :value="aiDifficulty" @change="$emit('update:aiDifficulty', $event.target.value)">
-              <option value="easy">入门 (Easy)</option>
-              <option value="medium">中级 (Medium)</option>
-              <option value="hard">大师 (Hard)</option>
-              <option value="gemini">✨ GPT 大模型对弈</option>
+              <option value="easy">入门难度</option>
+              <option value="medium">中级难度</option>
+              <option value="hard">大师难度</option>
+              <option value="gemini">✨ 大模型 AI 对弈</option>
             </select>
           </div>
         </div>
@@ -57,12 +57,12 @@
         <button class="btn btn-primary" @click="$emit('start-new-game')">🎮 重新开始</button>
         <button class="btn" @click="$emit('undo-move')">↩️ 悔棋</button>
         <button class="btn" @click="$emit('show-hint')">💡 提示</button>
-        <button class="btn" @click="$emit('open-fen-modal')">📜 FEN/棋谱</button>
+        <button class="btn" @click="$emit('open-fen-modal')">📜 局面 / 棋谱</button>
         <button class="btn" style="grid-column: span 2; background: rgba(212, 163, 115, 0.2); border-color: var(--accent-gold);" @click="$emit('open-help-modal')">
           📖 玩法指南与帮助
         </button>
         <button class="btn" style="grid-column: span 2; background: rgba(129, 140, 248, 0.2); border-color: #818cf8;" @click="$emit('open-api-modal')">
-          🔑 GPT 大模型 API 设置
+          🔑 大模型接口设置
         </button>
         <button class="btn" style="grid-column: span 2" @click="$emit('toggle-sound')">
           {{ soundEnabled ? '🔊 音效: 开' : '🔇 音效: 关' }}

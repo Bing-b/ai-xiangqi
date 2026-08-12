@@ -1,7 +1,6 @@
 <template>
   <header class="game-header">
-    <h1 class="game-title">中國象棋</h1>
-    <p class="game-subtitle">CHINESE CHESS - VUE3 EDITION</p>
+    <h1 class="game-title">中国象棋 AI 版</h1>
   </header>
 </template>
 

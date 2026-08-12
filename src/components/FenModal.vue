@@ -1,21 +1,21 @@
 <template>
   <div class="overlay" :class="{ active: modelValue }">
     <div class="overlay-card fen-modal-card">
-      <h2 class="overlay-title">📜 FEN 局面与棋谱工具</h2>
+      <h2 class="overlay-title">📜 局面与棋谱工具</h2>
       
       <div class="fen-field-group">
-        <label>当前 FEN 字符串 (Forsyth–Edwards Notation):</label>
+        <label>当前局面字符串 (FEN 局面码):</label>
         <textarea v-model="inputFen" rows="3" class="fen-textarea"></textarea>
         <div class="fen-btn-row">
-          <button class="btn" @click="copyFen">📋 复制 FEN</button>
-          <button class="btn btn-primary" @click="applyFen">🚀 摆设该 FEN 局势</button>
+          <button class="btn" @click="copyFen">📋 复制局面码</button>
+          <button class="btn btn-primary" @click="applyFen">🚀 载入此局面</button>
         </div>
       </div>
 
       <div class="fen-field-group" style="margin-top: 16px;">
-        <label>PGN 导出文本:</label>
+        <label>棋谱文本 (PGN 格式):</label>
         <textarea :value="pgnText" rows="4" class="fen-textarea" readonly></textarea>
-        <button class="btn" style="margin-top: 6px;" @click="copyPgn">📋 复制 PGN 棋谱</button>
+        <button class="btn" style="margin-top: 6px;" @click="copyPgn">📋 复制棋谱</button>
       </div>
 
       <button class="btn" style="margin-top: 20px; width: 100%;" @click="$emit('update:modelValue', false)">关闭窗口</button>
@@ -53,12 +53,12 @@ const pgnText = computed(() => {
 
 const copyFen = () => {
   navigator.clipboard.writeText(inputFen.value);
-  alert('FEN 字符串已复制到剪贴板！');
+  alert('局面码已复制到剪贴板！');
 };
 
 const copyPgn = () => {
   navigator.clipboard.writeText(pgnText.value);
-  alert('PGN 棋谱已复制到剪贴板！');
+  alert('棋谱文本已复制到剪贴板！');
 };
 
 const applyFen = () => {

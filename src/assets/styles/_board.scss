@@ -17,7 +17,9 @@
   height: auto;
   aspect-ratio: 9 / 10;
   border-radius: 14px;
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8), 0 0 25px rgba(212, 163, 115, 0.15);
+  box-shadow:
+    0 15px 40px rgba(0, 0, 0, 0.8),
+    0 0 25px rgba(212, 163, 115, 0.15);
   overflow: hidden;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
@@ -66,19 +68,23 @@
   &.selected {
     .piece {
       transform: scale(1.15) translateY(-3px);
-      box-shadow: 0 0 20px #f1c40f, 0 10px 20px rgba(0, 0, 0, 0.6);
+      box-shadow:
+        0 0 20px #f1c40f,
+        0 10px 20px rgba(0, 0, 0, 0.6);
       border-color: #f1c40f !important;
       z-index: 10;
     }
 
     &::after {
-      content: '';
+      content: "";
       position: absolute;
       width: 94%;
       height: 94%;
       border-radius: 50%;
       border: 3px solid #f1c40f;
-      box-shadow: 0 0 18px #f1c40f, inset 0 0 10px rgba(241, 196, 15, 0.5);
+      box-shadow:
+        0 0 18px #f1c40f,
+        inset 0 0 10px rgba(241, 196, 15, 0.5);
       animation: pulseSelect 1.2s infinite alternate;
       z-index: 5;
       pointer-events: none;
@@ -86,7 +92,7 @@
   }
 
   &.valid-move::after {
-    content: '';
+    content: "";
     position: absolute;
     width: 24px;
     height: 24px;
@@ -100,7 +106,7 @@
   }
 
   &.valid-capture::after {
-    content: '';
+    content: "";
     position: absolute;
     width: 90%;
     height: 90%;
@@ -120,7 +126,9 @@
       border-radius: 50%;
       border: 2.5px dashed #f39c12;
       background: rgba(243, 156, 18, 0.22);
-      box-shadow: 0 0 12px rgba(243, 156, 18, 0.5), inset 0 0 8px rgba(243, 156, 18, 0.25);
+      box-shadow:
+        0 0 12px rgba(243, 156, 18, 0.5),
+        inset 0 0 8px rgba(243, 156, 18, 0.25);
       z-index: 1;
       pointer-events: none;
       display: flex;
@@ -147,12 +155,14 @@
       animation: lastMovePulse 1.2s ease-in-out infinite alternate;
 
       &::after {
-        content: '';
+        content: "";
         position: absolute;
         inset: 0;
         border-radius: 50%;
         border: 3px solid #f39c12;
-        box-shadow: 0 0 16px #f39c12, inset 0 0 8px rgba(243, 156, 18, 0.4);
+        box-shadow:
+          0 0 16px #f39c12,
+          inset 0 0 8px rgba(243, 156, 18, 0.4);
       }
 
       .corner {
@@ -190,6 +200,31 @@
       }
     }
   }
+
+  &.last-move-player {
+    &.last-move-from .last-move-from-marker {
+      border-color: #00e676;
+      background: rgba(0, 230, 118, 0.25);
+      box-shadow: 0 0 12px rgba(0, 230, 118, 0.6), inset 0 0 8px rgba(0, 230, 118, 0.3);
+
+      .from-crosshair {
+        background: #00e676;
+        box-shadow: 0 0 10px #00e676;
+      }
+    }
+
+    &.last-move-to .last-move-to-marker {
+      &::after {
+        border-color: #00e676;
+        box-shadow: 0 0 16px #00e676, inset 0 0 8px rgba(0, 230, 118, 0.5);
+      }
+
+      .corner {
+        border-color: #00e676;
+        filter: drop-shadow(0 0 6px #00e676);
+      }
+    }
+  }
 }
 
 /* SVG Trajectory Line */
@@ -204,9 +239,17 @@
 
 /* Animations */
 @keyframes moveLinePulse {
-  0% { stroke-dashoffset: 32; opacity: 0.6; }
-  50% { opacity: 0.95; }
-  100% { stroke-dashoffset: 0; opacity: 0.6; }
+  0% {
+    stroke-dashoffset: 32;
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 0.95;
+  }
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0.6;
+  }
 }
 
 @keyframes lastMovePulse {
@@ -221,18 +264,32 @@
 }
 
 @keyframes pulseSelect {
-  from { transform: scale(0.95); opacity: 0.8; }
-  to { transform: scale(1.05); opacity: 1; }
+  from {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+  to {
+    transform: scale(1.05);
+    opacity: 1;
+  }
 }
 
 @keyframes pulseDot {
-  from { transform: scale(0.85); }
-  to { transform: scale(1.15); }
+  from {
+    transform: scale(0.85);
+  }
+  to {
+    transform: scale(1.15);
+  }
 }
 
 @keyframes pulseCapture {
-  from { transform: scale(0.95) rotate(0deg); }
-  to { transform: scale(1.05) rotate(15deg); }
+  from {
+    transform: scale(0.95) rotate(0deg);
+  }
+  to {
+    transform: scale(1.05) rotate(15deg);
+  }
 }
 
 /* Piece Styles */
@@ -245,8 +302,12 @@
   justify-content: center;
   align-items: center;
   z-index: 2;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4), inset 0 3px 4px rgba(255, 255, 255, 0.4);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+  box-shadow:
+    0 6px 12px rgba(0, 0, 0, 0.4),
+    inset 0 3px 4px rgba(255, 255, 255, 0.4);
 
   &:hover {
     transform: scale(1.1) translateY(-2px);
@@ -255,24 +316,34 @@
 }
 
 .piece-red {
-  background: radial-gradient(circle at 35% 35%, #fceade 0%, #e6b89c 40%, #c88d68 100%);
+  background: radial-gradient(
+    circle at 35% 35%,
+    #fceade 0%,
+    #e6b89c 40%,
+    #c88d68 100%
+  );
   border: 3px solid #8c4424;
 
   .piece-inner {
     color: var(--red-piece);
     border: 2px solid var(--red-piece);
-    text-shadow: 0 1px 2px rgba(0,0,0,0.15);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
   }
 }
 
 .piece-black {
-  background: radial-gradient(circle at 35% 35%, #fceade 0%, #e6b89c 40%, #c88d68 100%);
+  background: radial-gradient(
+    circle at 35% 35%,
+    #fceade 0%,
+    #e6b89c 40%,
+    #c88d68 100%
+  );
   border: 3px solid #4a3427;
 
   .piece-inner {
     color: #1a252f;
     border: 2px solid #1a252f;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.15);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
   }
 }
 
@@ -283,7 +354,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  font-family: 'Ma Shan Zheng', 'Kaiti', serif;
+  font-family: "Ma Shan Zheng", "Kaiti", serif;
   font-size: clamp(0.95rem, 4.2vw, 1.65rem);
   font-weight: bold;
 }
@@ -322,12 +393,25 @@
 }
 
 .vibrate {
-  animation: boardShake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+  animation: boardShake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }
 
 @keyframes boardShake {
-  10%, 90% { transform: translate3d(-2px, 0, 0); }
-  20%, 80% { transform: translate3d(4px, 0, 0); }
-  30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
-  40%, 60% { transform: translate3d(6px, 0, 0); }
+  10%,
+  90% {
+    transform: translate3d(-2px, 0, 0);
+  }
+  20%,
+  80% {
+    transform: translate3d(4px, 0, 0);
+  }
+  30%,
+  50%,
+  70% {
+    transform: translate3d(-6px, 0, 0);
+  }
+  40%,
+  60% {
+    transform: translate3d(6px, 0, 0);
+  }
 }

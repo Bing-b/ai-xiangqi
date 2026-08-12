@@ -1,29 +1,29 @@
 <template>
   <div class="overlay" :class="{ active: modelValue }">
     <div class="overlay-card fen-modal-card" style="max-width: 520px; text-align: left;">
-      <h2 class="overlay-title" style="text-align: center;">🔑 GPT API 安全设置</h2>
+      <h2 class="overlay-title" style="text-align: center;">🔑 大模型接口设置</h2>
       <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px; line-height: 1.5;">
-        🛡️ <strong>安全防泄漏提示</strong>：您的 API Key 将仅保存在您浏览器的本地存储 (localStorage) 中，绝不会写入源代码文件或上传至任何远程仓库。
+        🛡️ <strong>安全防泄漏提示</strong>：您的密钥将仅保存在您浏览器的本地存储中，绝不会写入源代码或上传至远程仓库。
       </p>
 
       <div class="fen-field-group">
-        <label>API Key (OpenAI / DeepSeek / 中转 Key):</label>
+        <label>接口密钥 (API Key):</label>
         <div style="display: flex; gap: 8px; align-items: center;">
-          <input :type="keyVisible ? 'text' : 'password'" v-model="inputKey" class="fen-textarea" style="height: 38px; resize: none; flex: 1; padding: 8px 12px;" placeholder="例如: sk-..." />
-          <button class="btn" style="padding: 8px 12px; height: 38px;" title="显示/隐藏 Key" @click="keyVisible = !keyVisible">
+          <input :type="keyVisible ? 'text' : 'password'" v-model="inputKey" class="fen-textarea" style="height: 38px; resize: none; flex: 1; padding: 8px 12px;" placeholder="例如: sk-***" />
+          <button class="btn" style="padding: 8px 12px; height: 38px;" title="显示/隐藏密钥" @click="keyVisible = !keyVisible">
             {{ keyVisible ? '🙈' : '👁️' }}
           </button>
         </div>
       </div>
 
       <div class="fen-field-group" style="margin-top: 12px;">
-        <label>API Base URL (接口域名 / 中转地址):</label>
-        <input type="text" v-model="inputBaseUrl" class="fen-textarea" style="height: 38px; resize: none; padding: 8px 12px;" placeholder="例如: https://xuseny.online/v1 或 https://api.openai.com/v1" />
+        <label>接口域名地址 (Base URL):</label>
+        <input type="text" v-model="inputBaseUrl" class="fen-textarea" style="height: 38px; resize: none; padding: 8px 12px;" placeholder="例如: https://api.openai.com/v1" />
       </div>
 
       <div class="fen-field-group" style="margin-top: 12px;">
         <label>模型名称 (Model):</label>
-        <input type="text" v-model="inputModel" class="fen-textarea" style="height: 38px; resize: none; padding: 8px 12px;" placeholder="例如: gpt-5.5 / gpt-4o-mini / deepseek-chat" />
+        <input type="text" v-model="inputModel" class="fen-textarea" style="height: 38px; resize: none; padding: 8px 12px;" placeholder="例如: gpt-4o-mini / deepseek-chat" />
       </div>
 
       <div v-if="statusMsg" style="font-size: 0.85rem; margin-top: 10px; min-height: 20px; font-weight: bold;" :style="{ color: statusColor }">
