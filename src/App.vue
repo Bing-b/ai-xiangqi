@@ -3,10 +3,20 @@
     <!-- Top Header -->
     <GameHeader />
 
-    <!-- Main 3-Column Layout -->
+    <!-- Mobile Quick Actions (Shown on Mobile Phones < 768px) -->
+    <div class="mobile-quick-actions">
+      <button class="btn btn-primary" @click="startNewGame">🎮 新局</button>
+      <button class="btn" @click="undoMove">↩️ 悔棋</button>
+      <button class="btn" @click="showHint">💡 提示</button>
+      <button class="btn" @click="toggleSound">{{ soundEnabled ? '🔊' : '🔇' }}</button>
+      <button class="btn" @click="fenModalActive = true">📜 棋谱</button>
+    </div>
+
+    <!-- Main Responsive Layout -->
     <main class="main-layout">
       <!-- Left Control Panel -->
       <GameControlPanel
+        :class="{ 'mobile-hidden': mobileTab !== 'settings' }"
         :mode="mode"
         :ai-difficulty="aiDifficulty"
         :player-side="playerSide"
@@ -40,8 +50,27 @@
         @cell-click="handleCellClick"
       />
 
+      <!-- Mobile Tab Switcher (Shown under board on Mobile Phones < 768px) -->
+      <div class="mobile-tab-bar">
+        <button
+          class="tab-btn"
+          :class="{ active: mobileTab === 'status' }"
+          @click="mobileTab = 'status'"
+        >
+          📊 局势与历史
+        </button>
+        <button
+          class="tab-btn"
+          :class="{ active: mobileTab === 'settings' }"
+          @click="mobileTab = 'settings'"
+        >
+          ⚙️ 游戏设置
+        </button>
+      </div>
+
       <!-- Right Status & History Panel -->
       <GameStatusPanel
+        :class="{ 'mobile-hidden': mobileTab !== 'status' }"
         :turn="turn"
         :formatted-red-time="formattedRedTime"
         :formatted-black-time="formattedBlackTime"
@@ -79,6 +108,7 @@
 </template>
 
 <script setup>
+import { ref } from 'vue';
 import GameHeader from './components/GameHeader.vue';
 import GameBoard from './components/GameBoard.vue';
 import GameControlPanel from './components/GameControlPanel.vue';
@@ -87,6 +117,8 @@ import FenModal from './components/FenModal.vue';
 import HelpModal from './components/HelpModal.vue';
 import ApiModal from './components/ApiModal.vue';
 import { useXiangqiGame } from './composables/useXiangqiGame.js';
+
+const mobileTab = ref('status');
 
 const {
   grid,
