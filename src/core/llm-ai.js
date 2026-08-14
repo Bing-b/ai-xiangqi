@@ -155,21 +155,32 @@ ${formattedMoves}
 
     let candidateUrls = [];
     rawEndpoints.forEach(ep => {
-      if (useCorsProxy && !ep.includes('localhost') && !ep.includes('127.0.0.1')) {
-        if (customProxyPrefix) {
-          if (customProxyPrefix.includes('%s')) {
-            candidateUrls.push(customProxyPrefix.replace('%s', encodeURIComponent(ep)));
-          } else {
-            candidateUrls.push(customProxyPrefix + (customProxyPrefix.includes('?') ? encodeURIComponent(ep) : ep));
-          }
-        }
-        candidateUrls.push(`https://corsproxy.io/?${encodeURIComponent(ep)}`);
-        candidateUrls.push(`https://thingproxy.freeboard.io/fetch/${ep}`);
+      // 1. 如果已是相对路径，直接使用
+      if (ep.startsWith('/')) {
+        candidateUrls.push(ep);
+        return;
       }
+
+      // 2. 部署环境内置 Edge Function 代理 (Cloudflare Pages / Vercel / 本地 Vite 代理)
+      if (useCorsProxy && !ep.includes('localhost') && !ep.includes('127.0.0.1')) {
+        candidateUrls.push(`/api/proxy?url=${encodeURIComponent(ep)}`);
+      }
+
+      // 3. 直接请求 (直连)
       candidateUrls.push(ep);
+
+      // 4. 自定义代理前缀 (如果用户在配置中指定)
+      if (customProxyPrefix) {
+        if (customProxyPrefix.includes('%s')) {
+          candidateUrls.push(customProxyPrefix.replace('%s', encodeURIComponent(ep)));
+        } else {
+          candidateUrls.push(customProxyPrefix + (customProxyPrefix.includes('?') ? encodeURIComponent(ep) : ep));
+        }
+      }
     });
 
     candidateUrls = Array.from(new Set(candidateUrls));
+
 
     let response = null;
     let errorLog = [];
