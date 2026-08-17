@@ -1,5 +1,5 @@
 <template>
-  <div class="overlay" :class="{ active: modelValue }">
+  <div class="overlay" :class="{ active: modelValue }" @click.self="$emit('update:modelValue', false)">
     <div class="overlay-card fen-modal-card" style="max-width: 520px; text-align: left;">
       <h2 class="overlay-title" style="text-align: center;">🔑 大模型接口设置</h2>
       <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px; line-height: 1.5;">

@@ -1,5 +1,5 @@
 <template>
-  <div class="overlay" :class="{ active: modelValue }">
+  <div class="overlay" :class="{ active: modelValue }" @click.self="$emit('update:modelValue', false)">
     <div class="overlay-card fen-modal-card" style="max-width: 600px; text-align: left;">
       <h2 class="overlay-title" style="text-align: center;">📖 游戏操作与玩法说明</h2>
       
