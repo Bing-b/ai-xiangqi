@@ -1,6 +1,6 @@
 <template>
   <div class="card-panel history-card" style="flex: 1; display: flex; flex-direction: column; min-height: 140px;">
-    <h2 class="card-title">📜 对局棋谱</h2>
+    <h2 class="card-title">📜 走子记录</h2>
     <div class="history-log" style="flex: 1;">
       <div v-for="(pair, idx) in historyPairs" :key="'pair-'+idx" class="history-row">
         <span class="step-num">{{ idx + 1 }}.</span>

@@ -6,17 +6,19 @@ import { EndgameManager } from "../core/endgame.js";
 import { sounds } from "../core/audio.js";
 import { Rules } from "../core/rules.js";
 import { RED, BLACK, gridToFen, GAME_THEMES } from "../core/constants.js";
+import { useOnlineMatch } from "./useOnlineMatch.js";
 
 export function useXiangqiGame() {
   const board = new XiangqiBoard();
   const ai = new XiangqiAI("medium");
   const llmAi = new LLMXiangqiAI();
   const endgameManager = new EndgameManager();
+  const onlineMatch = useOnlineMatch();
 
   // Reactive Game States
   const grid = ref(board.getInitialGrid());
   const turn = ref(RED);
-  const mode = ref("pvai"); // 'pvp', 'pvai', 'endgame'
+  const mode = ref("pvai"); // 'pvp', 'pvai', 'endgame', 'online'
   const aiDifficulty = ref("medium");
   const playerSide = ref(RED);
 
@@ -53,6 +55,7 @@ export function useXiangqiGame() {
   const fenModalActive = ref(false);
   const helpModalActive = ref(false);
   const apiModalActive = ref(false);
+  const onlineModalActive = ref(false);
 
   // Endgame Challenge State
   const endgameLevels = ref(endgameManager.getAllLevels());
@@ -184,11 +187,24 @@ export function useXiangqiGame() {
   const handleCellClick = async (r, c) => {
     if (!gameActive.value || isAiThinking.value) return;
 
+    // In AI mode or Endgame mode, restrict to player's turn
     if (
       (mode.value === "pvai" || mode.value === "endgame") &&
       turn.value !== playerSide.value
-    )
+    ) {
       return;
+    }
+
+    // In Online mode, only allow moving if it's player's turn
+    if (mode.value === "online") {
+      if (!onlineMatch.isConnected.value) {
+        onlineModalActive.value = true;
+        return;
+      }
+      if (turn.value !== playerSide.value) {
+        return;
+      }
+    }
 
     const clickedPiece = board.getPiece(r, c);
 
@@ -196,15 +212,19 @@ export function useXiangqiGame() {
     if (selectedSquare.value) {
       const move = validMoves.value.find((m) => m.toR === r && m.toC === c);
       if (move) {
-        await makeMove(move);
         selectedSquare.value = null;
         validMoves.value = [];
+        await makeMove(move, false);
         return;
       }
     }
 
     // Select piece if it belongs to current turn player
     if (clickedPiece && Rules.getSide(clickedPiece) === turn.value) {
+      // In online mode, can only pick own pieces
+      if (mode.value === "online" && Rules.getSide(clickedPiece) !== playerSide.value) {
+        return;
+      }
       selectedSquare.value = { r, c };
       validMoves.value = Rules.getLegalMoves(board.grid, r, c);
       sounds.playSelect();
@@ -214,9 +234,14 @@ export function useXiangqiGame() {
     }
   };
 
-  const makeMove = async (move) => {
+  const makeMove = async (move, isRemote = false) => {
     const record = board.executeMove(move);
     updateStateFromBoard();
+
+    // Send move to peer if in online mode and move was made locally
+    if (mode.value === "online" && !isRemote) {
+      onlineMatch.sendMove(move);
+    }
 
     if (record.captured) {
       sounds.playCapture();
@@ -259,45 +284,32 @@ export function useXiangqiGame() {
 
     // Trigger AI if applicable
     if (
-      gameActive.value &&
       (mode.value === "pvai" || mode.value === "endgame") &&
-      turn.value !== playerSide.value
+      turn.value !== playerSide.value &&
+      gameActive.value
     ) {
-      await triggerAiTurn();
+      triggerAiTurn();
     }
   };
 
+  const isLLMDifficulty = (diff) => {
+    return diff === 'gemini' || (typeof diff === 'string' && diff.startsWith('llm_'));
+  };
+
   const triggerAiTurn = async () => {
-    if (!gameActive.value || isAiThinking.value) return;
+    if (!gameActive.value) return;
     isAiThinking.value = true;
 
     try {
-      if (aiDifficulty.value === "gemini") {
-        const legalMoves = Rules.getAllLegalMoves(board.grid, board.turn);
-        if (legalMoves.length === 0) return;
-
-        if (!llmAi.hasApiKey()) {
-          gptCommentary.value = "⚠️ 未检测到接口密钥，已自动使用本地 AI 代下。";
-          const fallbackMove = await ai.getBestMove(board.grid, board.turn);
-          if (fallbackMove && gameActive.value) await makeMove(fallbackMove);
-          return;
-        }
-
-        const rateCheck = llmAi.checkRateLimit();
-        if (!rateCheck.allowed) {
-          gptCommentary.value = `⚠️ ${rateCheck.reason}，已自动使用本地 AI 代下。`;
-          const fallbackMove = await ai.getBestMove(board.grid, board.turn);
-          if (fallbackMove && gameActive.value) await makeMove(fallbackMove);
-          return;
-        }
-
-        gptCommentary.value = "🤖 大模型 AI 正在深度推演最佳棋路中...";
-        const historyNotations = board.moveHistory.map((h) => h.notation);
-        const result = await llmAi.getMoveFromGPT(
-          board.grid,
+      if (isLLMDifficulty(aiDifficulty.value) && llmAi.hasApiKey()) {
+        const fen = gridToFen(board.grid, board.turn);
+        const historyNotations = board.moveHistory.map((m) => m.notation);
+        const result = await llmAi.getNextMove(
+          fen,
           board.turn,
-          legalMoves,
+          board.grid,
           historyNotations,
+          aiDifficulty.value
         );
         llmAi.recordCallSuccess();
         gptCommentary.value = `🤖 AI 棋评: "${result.commentary}"`;
@@ -323,6 +335,13 @@ export function useXiangqiGame() {
 
   const undoMove = async () => {
     if (!gameActive.value || isAiThinking.value) return;
+
+    if (mode.value === "online") {
+      if (!onlineMatch.isConnected.value) return;
+      onlineMatch.requestUndo();
+      alert("已向对手发送悔棋请求，等待对方同意...");
+      return;
+    }
 
     if (mode.value === "pvai" || mode.value === "endgame") {
       board.undoMove();
@@ -351,12 +370,16 @@ export function useXiangqiGame() {
 
   const setMode = (newMode) => {
     mode.value = newMode;
-    startNewGame();
+    if (newMode === "online") {
+      onlineModalActive.value = true;
+    } else {
+      startNewGame();
+    }
   };
 
   const setDifficulty = (newDiff) => {
     aiDifficulty.value = newDiff;
-    if (newDiff === "gemini") {
+    if (isLLMDifficulty(newDiff)) {
       showGptCard.value = true;
       if (!llmAi.hasApiKey()) {
         gptCommentary.value =
@@ -392,6 +415,51 @@ export function useXiangqiGame() {
     }
   };
 
+  // Setup Online Listeners
+  onlineMatch.listeners.onConnected = ({ isHost }) => {
+    mode.value = "online";
+    playerSide.value = isHost ? RED : BLACK;
+    startNewGame();
+  };
+
+  onlineMatch.listeners.onMove = (remoteMove) => {
+    if (mode.value === "online") {
+      makeMove(remoteMove, true);
+    }
+  };
+
+  onlineMatch.listeners.onUndoReq = () => {
+    const agree = confirm(`【${onlineMatch.opponentNickname.value}】请求悔棋，是否同意？`);
+    onlineMatch.respondUndo(agree);
+    if (agree) {
+      board.undoMove();
+      selectedSquare.value = null;
+      validMoves.value = [];
+      updateStateFromBoard();
+    }
+  };
+
+  onlineMatch.listeners.onUndoAccept = () => {
+    alert("对方已同意您的悔棋请求！");
+    board.undoMove();
+    selectedSquare.value = null;
+    validMoves.value = [];
+    updateStateFromBoard();
+  };
+
+  onlineMatch.listeners.onUndoReject = () => {
+    alert("对方拒绝了您的悔棋请求。");
+  };
+
+  onlineMatch.listeners.onResign = () => {
+    gameActive.value = false;
+    stopTimer();
+    sounds.playWin();
+    gameOverOverlay.title = "🏆 对方认输！";
+    gameOverOverlay.desc = `${onlineMatch.opponentNickname.value} 主动认输，恭喜获胜！`;
+    gameOverOverlay.active = true;
+  };
+
   // Initial Theme Apply
   applyTheme(currentTheme.value);
 
@@ -401,6 +469,7 @@ export function useXiangqiGame() {
 
   onUnmounted(() => {
     stopTimer();
+    onlineMatch.leaveRoom();
   });
 
   return {
@@ -431,6 +500,7 @@ export function useXiangqiGame() {
     fenModalActive,
     helpModalActive,
     apiModalActive,
+    onlineModalActive,
     endgameLevels,
     endgameLevelIndex,
     currentEndgameDesc,
@@ -447,5 +517,6 @@ export function useXiangqiGame() {
     setEndgameLevel,
     applyFen,
     llmAi,
+    onlineMatch,
   };
 }

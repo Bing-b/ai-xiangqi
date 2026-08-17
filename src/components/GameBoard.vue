@@ -4,6 +4,13 @@
       {{ checkBanner.text }}
     </div>
 
+    <!-- Floating Emoji Popover -->
+    <transition name="emoji-pop">
+      <div v-if="opponentEmoji" class="opponent-emoji-bubble">
+        <span class="emoji-bubble-text">{{ opponentEmoji }}</span>
+      </div>
+    </transition>
+
     <div class="board-wrapper" :class="{ vibrate: vibrateBoard }">
       <!-- SVG Board Vector Base -->
       <svg viewBox="0 0 900 1000" class="board-svg">
@@ -154,6 +161,7 @@ const props = defineProps({
   lastMove: Object,
   checkBanner: Object,
   vibrateBoard: Boolean,
+  opponentEmoji: String,
 });
 
 const emit = defineEmits(["cell-click"]);
@@ -201,3 +209,38 @@ const emitCellClick = (r, c) => {
   emit("cell-click", r, c);
 };
 </script>
+
+<style scoped>
+.opponent-emoji-bubble {
+  position: absolute;
+  top: 15%;
+  right: 15%;
+  z-index: 60;
+  background: rgba(0, 0, 0, 0.75);
+  border: 2px solid var(--accent-gold, #d4a373);
+  padding: 12px 18px;
+  border-radius: 24px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  pointer-events: none;
+}
+
+.emoji-bubble-text {
+  font-size: 2.5rem;
+  line-height: 1;
+}
+
+.emoji-pop-enter-active,
+.emoji-pop-leave-active {
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.emoji-pop-enter-from {
+  opacity: 0;
+  transform: scale(0.3) translateY(20px);
+}
+
+.emoji-pop-leave-to {
+  opacity: 0;
+  transform: scale(0.8) translateY(-20px);
+}
+</style>

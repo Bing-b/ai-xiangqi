@@ -6,10 +6,10 @@
     <!-- Mobile Quick Actions (Shown on Mobile Phones < 768px) -->
     <div class="mobile-quick-actions">
       <button class="btn btn-primary" @click="startNewGame">🎮 新局</button>
+      <button class="btn" @click="onlineModalActive = true">🌐 联机</button>
       <button class="btn" @click="undoMove">↩️ 悔棋</button>
       <button class="btn" @click="showHint">💡 提示</button>
       <button class="btn" @click="toggleSound">{{ soundEnabled ? '🔊' : '🔇' }}</button>
-      <button class="btn" @click="fenModalActive = true">📜 棋谱</button>
     </div>
 
     <!-- Main Responsive Layout -->
@@ -25,6 +25,8 @@
         :endgame-levels="endgameLevels"
         :current-endgame-desc="currentEndgameDesc"
         :sound-enabled="soundEnabled"
+        :is-connected="onlineMatch.isConnected.value"
+        :opponent-nickname="onlineMatch.opponentNickname.value"
         @update:mode="setMode"
         @update:aiDifficulty="setDifficulty"
         @update:playerSide="setPlayerSide"
@@ -33,9 +35,9 @@
         @start-new-game="startNewGame"
         @undo-move="undoMove"
         @show-hint="showHint"
-        @open-fen-modal="fenModalActive = true"
         @open-help-modal="helpModalActive = true"
         @open-api-modal="apiModalActive = true"
+        @open-online-modal="onlineModalActive = true"
         @toggle-sound="toggleSound"
       />
 
@@ -47,6 +49,7 @@
         :last-move="lastMove"
         :check-banner="checkBanner"
         :vibrate-board="vibrateBoard"
+        :opponent-emoji="onlineMatch.opponentEmoji.value"
         @cell-click="handleCellClick"
       />
 
@@ -96,29 +99,29 @@
     </div>
 
     <!-- Modals -->
-    <FenModal
-      v-model="fenModalActive"
-      :current-fen="currentFen"
-      :move-history="moveHistory"
-      @apply-fen="applyFen"
-    />
     <HelpModal v-model="helpModalActive" />
     <ApiModal v-model="apiModalActive" :llm-ai="llmAi" />
+    <OnlineModal
+      v-model="onlineModalActive"
+      :online-match="onlineMatch"
+      :auto-join-code="autoJoinCode"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import GameHeader from './components/GameHeader.vue';
 import GameBoard from './components/GameBoard.vue';
 import GameControlPanel from './components/GameControlPanel.vue';
 import GameStatusPanel from './components/GameStatusPanel.vue';
-import FenModal from './components/FenModal.vue';
 import HelpModal from './components/HelpModal.vue';
 import ApiModal from './components/ApiModal.vue';
+import OnlineModal from './components/OnlineModal.vue';
 import { useXiangqiGame } from './composables/useXiangqiGame.js';
 
 const mobileTab = ref('status');
+const autoJoinCode = ref('');
 
 const {
   grid,
@@ -143,13 +146,12 @@ const {
   gptCommentary,
   showGptCard,
   gameOverOverlay,
-  fenModalActive,
   helpModalActive,
   apiModalActive,
+  onlineModalActive,
   endgameLevels,
   endgameLevelIndex,
   currentEndgameDesc,
-  currentFen,
   startNewGame,
   handleCellClick,
   undoMove,
@@ -160,9 +162,23 @@ const {
   setDifficulty,
   setPlayerSide,
   setEndgameLevel,
-  applyFen,
-  llmAi
+  llmAi,
+  onlineMatch
 } = useXiangqiGame();
+
+onMounted(() => {
+  // Detect room code from URL parameters: ?room=884888
+  try {
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomParam = urlParams.get('room');
+    if (roomParam) {
+      autoJoinCode.value = roomParam;
+      onlineModalActive.value = true;
+    }
+  } catch (e) {
+    console.error('URL parse error:', e);
+  }
+});
 </script>
 
 <style lang="scss">

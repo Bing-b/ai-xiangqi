@@ -1,9 +1,37 @@
 /**
- * OpenAI / GPT Integration for Xiangqi
+ * OpenAI / GPT / Gemini Integration for Xiangqi with Difficulty & Style Engine
  */
 import { GAME_CONFIG } from './config.js';
-import { RED, PIECE_NAMES, gridToFen } from './constants.js';
+import { RED, BLACK, gridToFen } from './constants.js';
 import { Rules } from './rules.js';
+
+export const LLM_DIFFICULTY_PRESETS = {
+  llm_easy: {
+    name: '大模型·初窥门径 (轻松休闲)',
+    temp: 0.7,
+    system: `你是一位正在学中国象棋的可爱初学者。你性格随和，下棋以防守和试探为主。偶尔会走出有趣或出人意料的休闲步法。`
+  },
+  llm_medium: {
+    name: '大模型·业余好手 (攻守平衡)',
+    temp: 0.3,
+    system: `你是一位经验丰富的业余中国象棋好手。你注重开局出子效率（抢占中路、快速出车、兵卒控制），不轻易丢子，攻守兼备。`
+  },
+  llm_hard: {
+    name: '大模型·省级大师 (战术严密)',
+    temp: 0.1,
+    system: `你是一位战术素养极高的象棋省级大师。你精通各种杀法（双车错、马后炮、天地炮、夹车炮），严格评估双方子力价值与战术威胁，步步紧逼。`
+  },
+  llm_master: {
+    name: '大模型·特级大师 (全局深算)',
+    temp: 0.0,
+    system: `你是一位殿堂级中国象棋特级大师与特级裁判。你具备顶级的算路深度与大局观，善于推演对手意图、制造牵制与反击，绝不走任何随手软手。`
+  },
+  llm_attack: {
+    name: '大模型·狂暴刺客 (弃子强攻)',
+    temp: 0.2,
+    system: `你是一位极度好斗、嗜杀成性的狂暴象棋刺客。你的棋风凶悍凌厉，极度偏好弃子攻杀、下二道压制、沉底炮轰士、车强换双等玉石俱焚的攻势！`
+  }
+};
 
 export class LLMXiangqiAI {
   constructor() {
@@ -113,30 +141,44 @@ export class LLMXiangqiAI {
     return this.apiKey.length > 0;
   }
 
-  async getMoveFromGPT(grid, turn, legalMoves, moveHistoryNotations = []) {
+  /**
+   * Unified Entry Point for LLM Move Selection with Difficulty Preset
+   */
+  async getNextMove(fen, turn, grid, moveHistoryNotations = [], difficulty = 'llm_hard') {
+    const legalMoves = Rules.getAllLegalMoves(grid, turn);
+    if (!legalMoves || legalMoves.length === 0) {
+      return { move: null, commentary: '无合法走步。' };
+    }
+
+    return this.getMoveFromGPT(grid, turn, legalMoves, moveHistoryNotations, difficulty);
+  }
+
+  async getMoveFromGPT(grid, turn, legalMoves, moveHistoryNotations = [], difficulty = 'llm_hard') {
     if (!this.hasApiKey()) {
-      throw new Error('未设置 API Key，请在设置中配置 API_KEY。');
+      throw new Error('未设置 API Key，请在侧边栏【🔑 大模型接口设置】中配置。');
     }
 
     const currentFen = gridToFen(grid, turn);
     const sideName = turn === RED ? '红方' : '黑方';
+    const preset = LLM_DIFFICULTY_PRESETS[difficulty] || LLM_DIFFICULTY_PRESETS.llm_hard;
 
     const formattedMoves = legalMoves.map((m, idx) => {
-      const piece = grid[m.fromR][m.fromC];
       const notation = Rules.generateNotation(grid, m);
-      return `${idx}: ${notation} (从[${m.fromR},${m.fromC}]到[${m.toR},${m.toC}])`;
+      return `${idx}: ${notation} (从[${m.fromR},${m.fromC}]到[${m.toR},${m.toC}]${m.captured ? '，吃'+m.captured : ''})`;
     }).join('\n');
 
-    const systemPrompt = `你是一位精通中国象棋的特级大师AI。按要求速选最佳着法。`;
+    const systemPrompt = `${preset.system}\n你必须根据当前棋局严格选择一个最具战术价值且符合你性格风格的着法索引，并输出简短有趣的棋评。`;
 
-    const userPrompt = `当前FEN: "${currentFen}"
-轮到你 (${sideName})。近几步: ${moveHistoryNotations.slice(-4).join(', ') || '开局'}
-可选合法着法:
+    const userPrompt = `当前局面 FEN: "${currentFen}"
+当前轮到你走棋 (${sideName})。
+近几步棋路历史: ${moveHistoryNotations.slice(-5).join(' -> ') || '刚刚开局'}
+
+当前全部合法可选着法列表:
 ${formattedMoves}
 
-从列表中选出最优一步，仅输出合法 JSON 格式数据：
-{"moveIndex": 索引数字, "commentary": "20字以内精辟战略战术点评"}
-请直接输出 JSON，不要添加 Markdown 或多余字符。`;
+请从中选择你认为最符合你战略意图的一步棋，严格仅输出 JSON 格式（不要包含任何 markdown 块或多余字符）：
+{"moveIndex": 着法索引数字, "commentary": "15~25字以内结合你性格风格的精辟棋评/挑衅/战术点评"}
+示例: {"moveIndex": 3, "commentary": "中炮横扫当阳，看你如何招架！"}`;
 
     let cleanBase = (this.baseUrl || 'https://api.openai.com/v1').replace(/\/+$/, '');
     let rawEndpoints = [];
@@ -155,21 +197,14 @@ ${formattedMoves}
 
     let candidateUrls = [];
     rawEndpoints.forEach(ep => {
-      // 1. 如果已是相对路径，直接使用
       if (ep.startsWith('/')) {
         candidateUrls.push(ep);
         return;
       }
-
-      // 2. 部署环境内置 Edge Function 代理 (Cloudflare Pages / Vercel / 本地 Vite 代理)
       if (useCorsProxy && !ep.includes('localhost') && !ep.includes('127.0.0.1')) {
         candidateUrls.push(`/api/proxy?url=${encodeURIComponent(ep)}`);
       }
-
-      // 3. 直接请求 (直连)
       candidateUrls.push(ep);
-
-      // 4. 自定义代理前缀 (如果用户在配置中指定)
       if (customProxyPrefix) {
         if (customProxyPrefix.includes('%s')) {
           candidateUrls.push(customProxyPrefix.replace('%s', encodeURIComponent(ep)));
@@ -180,7 +215,6 @@ ${formattedMoves}
     });
 
     candidateUrls = Array.from(new Set(candidateUrls));
-
 
     let response = null;
     let errorLog = [];
@@ -199,7 +233,7 @@ ${formattedMoves}
               { role: 'system', content: systemPrompt },
               { role: 'user', content: userPrompt }
             ],
-            temperature: 0.2,
+            temperature: preset.temp,
             max_tokens: 150
           })
         });
@@ -219,18 +253,11 @@ ${formattedMoves}
 
     if (!response) {
       const summaryMsg = errorLog.join('; ');
-      let detailHint = '';
-      if (summaryMsg.includes('429')) {
-        detailHint = ' (公共跨域代理触发行限流 429)';
-      } else if (summaryMsg.includes('Failed to fetch')) {
-        detailHint = ' (目标中转站未配置 Access-Control-Allow-Origin 跨域头)';
-      }
-      throw new Error(`API 请求失败: ${summaryMsg}${detailHint}`);
+      throw new Error(`API 请求失败: ${summaryMsg}`);
     }
 
     const data = await response.json();
     const rawText = data.choices?.[0]?.message?.content || '';
-
     const cleanedText = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
 
     try {
@@ -239,7 +266,7 @@ ${formattedMoves}
       if (!isNaN(chosenIndex) && chosenIndex >= 0 && chosenIndex < legalMoves.length) {
         return {
           move: legalMoves[chosenIndex],
-          commentary: result.commentary || 'GPT 制定了此战略着法。'
+          commentary: result.commentary || '大模型已深思熟虑落子。'
         };
       }
     } catch (e) {
@@ -248,7 +275,7 @@ ${formattedMoves}
 
     return {
       move: legalMoves[0],
-      commentary: 'GPT 已下子。'
+      commentary: '大模型已落子。'
     };
   }
 }
