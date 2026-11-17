@@ -14,15 +14,8 @@
         <ul style="padding-left: 20px; font-size: 0.9rem; color: var(--text-main); line-height: 1.6;">
           <li><strong>🌐 好友联机对战</strong>：基于 WebRTC P2P 直连，一键生成房间码或邀请链接，好友点开即可免登录实时对弈。</li>
           <li><strong>👥 同屏对决</strong>：支持同屏两人轮流执红/执黑下棋。</li>
-          <li><strong>🤖 人机对弈</strong>：内置业余初级、大师级、特级大师以及大模型战术家。</li>
+          <li><strong>🤖 人机对弈</strong>：内置业余初级、业余高手、大师级、特级大师四档本地算力引擎。</li>
           <li><strong>🏆 残局闯关</strong>：内置《双马饮泉》、《千里独行》等经典杀局。</li>
-        </ul>
-
-        <h3 style="color: var(--accent-gold); margin-top: 14px; font-size: 1.05rem;">🤖 大模型 AI 对弈</h3>
-        <ul style="padding-left: 20px; font-size: 0.9rem; color: var(--text-main); line-height: 1.6;">
-          <li>在 AI 难度中可选择 <strong>特级大师 (全局推演)</strong> 或 <strong>狂暴刺客 (弃子强攻)</strong>。</li>
-          <li>可在侧边栏“🔑 大模型接口设置”中配置密钥与接口地址。</li>
-          <li>AI 下棋时会在侧边栏输出**实时的战术思路与棋局点评**！</li>
         </ul>
 
         <h3 style="color: var(--accent-gold); margin-top: 14px; font-size: 1.05rem;">🛠️ 实用工具与辅助</h3>

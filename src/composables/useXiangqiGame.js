@@ -1,7 +1,6 @@
 import { ref, reactive, computed, onMounted, onUnmounted } from "vue";
 import { XiangqiBoard } from "../core/board.js";
 import { XiangqiAI } from "../core/ai.js";
-import { LLMXiangqiAI } from "../core/llm-ai.js";
 import { EndgameManager } from "../core/endgame.js";
 import { sounds } from "../core/audio.js";
 import { Rules } from "../core/rules.js";
@@ -11,7 +10,6 @@ import { useOnlineMatch } from "./useOnlineMatch.js";
 export function useXiangqiGame() {
   const board = new XiangqiBoard();
   const ai = new XiangqiAI("medium");
-  const llmAi = new LLMXiangqiAI();
   const endgameManager = new EndgameManager();
   const onlineMatch = useOnlineMatch();
 
@@ -36,7 +34,7 @@ export function useXiangqiGame() {
   const evalRedPct = ref(50);
   const evalBlackPct = ref(50);
 
-  // Lists & Histories
+  // Lists & Histories (无人消费时仅保留内部状态，供棋局逻辑与回放使用)
   const moveHistory = ref([]);
   const capturedRed = ref([]);
   const capturedBlack = ref([]);
@@ -48,13 +46,9 @@ export function useXiangqiGame() {
   const checkBanner = reactive({ active: false, text: "" });
   const vibrateBoard = ref(false);
 
-  const gptCommentary = ref("");
-  const showGptCard = ref(false);
-
   const gameOverOverlay = reactive({ active: false, title: "", desc: "" });
   const fenModalActive = ref(false);
   const helpModalActive = ref(false);
-  const apiModalActive = ref(false);
   const onlineModalActive = ref(false);
 
   // Endgame Challenge State
@@ -292,42 +286,17 @@ export function useXiangqiGame() {
     }
   };
 
-  const isLLMDifficulty = (diff) => {
-    return diff === 'gemini' || (typeof diff === 'string' && diff.startsWith('llm_'));
-  };
-
   const triggerAiTurn = async () => {
     if (!gameActive.value) return;
     isAiThinking.value = true;
 
     try {
-      if (isLLMDifficulty(aiDifficulty.value) && llmAi.hasApiKey()) {
-        const fen = gridToFen(board.grid, board.turn);
-        const historyNotations = board.moveHistory.map((m) => m.notation);
-        const result = await llmAi.getNextMove(
-          fen,
-          board.turn,
-          board.grid,
-          historyNotations,
-          aiDifficulty.value
-        );
-        llmAi.recordCallSuccess();
-        gptCommentary.value = `🤖 AI 棋评: "${result.commentary}"`;
-
-        if (result.move && gameActive.value) {
-          await makeMove(result.move);
-        }
-      } else {
-        const aiMove = await ai.getBestMove(board.grid, board.turn);
-        if (aiMove && gameActive.value) {
-          await makeMove(aiMove);
-        }
+      const aiMove = await ai.getBestMove(board.grid, board.turn);
+      if (aiMove && gameActive.value) {
+        await makeMove(aiMove);
       }
     } catch (err) {
       console.error("AI error:", err);
-      gptCommentary.value = `⚠️ AI 思考异常 (${err.message || "网络问题"})，已自动使用本地 AI 代下。`;
-      const fallbackMove = await ai.getBestMove(board.grid, board.turn);
-      if (fallbackMove && gameActive.value) await makeMove(fallbackMove);
     } finally {
       isAiThinking.value = false;
     }
@@ -379,18 +348,7 @@ export function useXiangqiGame() {
 
   const setDifficulty = (newDiff) => {
     aiDifficulty.value = newDiff;
-    if (isLLMDifficulty(newDiff)) {
-      showGptCard.value = true;
-      if (!llmAi.hasApiKey()) {
-        gptCommentary.value =
-          "⚠️ 未检测到接口密钥，若需使用大模型 AI 请在侧边栏手动配置。";
-      } else {
-        gptCommentary.value = "🤖 已切换为大模型 AI 对手！";
-      }
-    } else {
-      ai.setDifficulty(newDiff);
-      showGptCard.value = false;
-    }
+    ai.setDifficulty(newDiff);
   };
 
   const setPlayerSide = (side) => {
@@ -404,16 +362,6 @@ export function useXiangqiGame() {
   };
 
   const currentFen = computed(() => gridToFen(grid.value, turn.value));
-
-  const applyFen = (fenStr) => {
-    try {
-      board.loadFen(fenStr);
-      updateStateFromBoard();
-      fenModalActive.value = false;
-    } catch (e) {
-      alert("FEN 格式有误，请输入标准的 Forsyth–Edwards Notation！");
-    }
-  };
 
   // Setup Online Listeners
   onlineMatch.listeners.onConnected = ({ isHost }) => {
@@ -487,19 +435,13 @@ export function useXiangqiGame() {
     formattedBlackTime,
     evalRedPct,
     evalBlackPct,
-    moveHistory,
-    capturedRed,
-    capturedBlack,
     currentTheme,
     soundEnabled,
     checkBanner,
     vibrateBoard,
-    gptCommentary,
-    showGptCard,
     gameOverOverlay,
     fenModalActive,
     helpModalActive,
-    apiModalActive,
     onlineModalActive,
     endgameLevels,
     endgameLevelIndex,
@@ -516,7 +458,6 @@ export function useXiangqiGame() {
     setPlayerSide,
     setEndgameLevel,
     applyFen,
-    llmAi,
     onlineMatch,
   };
 }

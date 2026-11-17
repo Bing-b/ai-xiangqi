@@ -35,16 +35,10 @@
           <div class="control-item">
             <label>AI 难度:</label>
             <select :value="aiDifficulty" @change="$emit('update:aiDifficulty', $event.target.value)">
-              <optgroup label="⚡ 本地算力引擎">
-                <option value="easy">🥉 业余初级 (轻松休闲)</option>
-                <option value="medium">🥈 业余高手 (县级水平)</option>
-                <option value="hard">🥇 大师级 (省级棋王)</option>
-                <option value="master">👑 特级大师 (算无遗策 - 深度计算)</option>
-              </optgroup>
-              <optgroup label="✨ 大模型 AI 对弈 (联网思考+棋评)">
-                <option value="llm_master">🤖 大模型·特级大师 (全局推演)</option>
-                <option value="llm_attack">🤖 大模型·狂暴刺客 (弃子强攻)</option>
-              </optgroup>
+              <option value="easy">🥉 业余初级 (轻松休闲)</option>
+              <option value="medium">🥈 业余高手 (县级水平)</option>
+              <option value="hard">🥇 大师级 (省级棋王)</option>
+              <option value="master">👑 特级大师 (算无遗策 - 深度计算)</option>
             </select>
           </div>
         </div>
@@ -88,9 +82,6 @@
         <button class="btn" style="grid-column: span 2; background: rgba(212, 163, 115, 0.2); border-color: var(--accent-gold);" @click="$emit('open-help-modal')">
           📖 玩法指南与帮助
         </button>
-        <button class="btn" style="grid-column: span 2; background: rgba(129, 140, 248, 0.2); border-color: #818cf8;" @click="$emit('open-api-modal')">
-          🔑 大模型接口设置
-        </button>
       </div>
     </div>
   </aside>
@@ -120,7 +111,6 @@ defineEmits([
   'undo-move',
   'show-hint',
   'open-help-modal',
-  'open-api-modal',
   'open-online-modal',
   'toggle-sound'
 ]);

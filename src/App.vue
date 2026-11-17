@@ -36,7 +36,6 @@
         @undo-move="undoMove"
         @show-hint="showHint"
         @open-help-modal="helpModalActive = true"
-        @open-api-modal="apiModalActive = true"
         @open-online-modal="onlineModalActive = true"
         @toggle-sound="toggleSound"
       />
@@ -71,19 +70,12 @@
         </button>
       </div>
 
-      <!-- Right Status & History Panel -->
+      <!-- Right Status Panel -->
       <GameStatusPanel
         :class="{ 'mobile-hidden': mobileTab !== 'status' }"
         :turn="turn"
-        :formatted-red-time="formattedRedTime"
-        :formatted-black-time="formattedBlackTime"
         :eval-red-pct="evalRedPct"
         :eval-black-pct="evalBlackPct"
-        :show-gpt-card="showGptCard"
-        :gpt-commentary="gptCommentary"
-        :move-history="moveHistory"
-        :captured-red="capturedRed"
-        :captured-black="capturedBlack"
       />
     </main>
 
@@ -100,7 +92,6 @@
 
     <!-- Modals -->
     <HelpModal v-model="helpModalActive" />
-    <ApiModal v-model="apiModalActive" :llm-ai="llmAi" />
     <OnlineModal
       v-model="onlineModalActive"
       :online-match="onlineMatch"
@@ -116,7 +107,6 @@ import GameBoard from './components/GameBoard.vue';
 import GameControlPanel from './components/GameControlPanel.vue';
 import GameStatusPanel from './components/GameStatusPanel.vue';
 import HelpModal from './components/HelpModal.vue';
-import ApiModal from './components/ApiModal.vue';
 import OnlineModal from './components/OnlineModal.vue';
 import { useXiangqiGame } from './composables/useXiangqiGame.js';
 
@@ -132,22 +122,14 @@ const {
   selectedSquare,
   validMoves,
   lastMove,
-  formattedRedTime,
-  formattedBlackTime,
   evalRedPct,
   evalBlackPct,
-  moveHistory,
-  capturedRed,
-  capturedBlack,
   currentTheme,
   soundEnabled,
   checkBanner,
   vibrateBoard,
-  gptCommentary,
-  showGptCard,
   gameOverOverlay,
   helpModalActive,
-  apiModalActive,
   onlineModalActive,
   endgameLevels,
   endgameLevelIndex,
@@ -162,7 +144,6 @@ const {
   setDifficulty,
   setPlayerSide,
   setEndgameLevel,
-  llmAi,
   onlineMatch
 } = useXiangqiGame();
 
