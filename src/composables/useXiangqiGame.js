@@ -363,6 +363,16 @@ export function useXiangqiGame() {
 
   const currentFen = computed(() => gridToFen(grid.value, turn.value));
 
+  const applyFen = (fenStr) => {
+    try {
+      board.loadFen(fenStr);
+      updateStateFromBoard();
+      fenModalActive.value = false;
+    } catch (e) {
+      alert("FEN 格式有误，请输入标准的 Forsyth–Edwards Notation！");
+    }
+  };
+
   // Setup Online Listeners
   onlineMatch.listeners.onConnected = ({ isHost }) => {
     mode.value = "online";

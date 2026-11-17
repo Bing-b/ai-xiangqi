@@ -1,5 +1,9 @@
 import { ref, reactive, computed } from "vue";
-import { Peer } from "peerjs";
+// peerjs 同时提供 CJS(bundler.cjs) 与 ESM(bundler.mjs)，不同解析路径下
+// 具名导出 Peer 可能拿不到，这里统一从默认导出上取，避免 "Named export not found"。
+import * as PeerNS from "peerjs";
+
+const Peer = PeerNS.Peer || PeerNS.default?.Peer || PeerNS.default;
 
 const PEER_PREFIX = "xiangqi-p2p-v1-";
 

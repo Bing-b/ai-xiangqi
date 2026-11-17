@@ -113,6 +113,8 @@ import { useXiangqiGame } from './composables/useXiangqiGame.js';
 const mobileTab = ref('status');
 const autoJoinCode = ref('');
 
+const game = useXiangqiGame();
+
 const {
   grid,
   turn,
@@ -145,7 +147,7 @@ const {
   setPlayerSide,
   setEndgameLevel,
   onlineMatch
-} = useXiangqiGame();
+} = game;
 
 onMounted(() => {
   // Detect room code from URL parameters: ?room=884888
